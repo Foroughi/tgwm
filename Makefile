@@ -30,6 +30,9 @@ mywm: ${OBJ}
 build-clean:
 	rm -f ${SRCDIR}*.o	
 
+clean:
+	rm -f ${DESDIR}mywm
+	
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
 	cp -f ${DESDIR}mywm ${DESTDIR}${PREFIX}/bin
