@@ -1,44 +1,24 @@
-PREFIX = /usr/local
-MANPREFIX = ${PREFIX}/share/man
-X11INC = /usr/X11R6/include
-X11LIB = /usr/X11R6/lib
-XINERAMALIBS  = -lXinerama
-XINERAMAFLAGS = -DXINERAMA
-FREETYPELIBS = -lfontconfig -lXft
-FREETYPEINC = /usr/include/freetype2
-INCS = -I${X11INC} -I${FREETYPEINC}
-LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}
-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-CFLAGS   = -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
-LDFLAGS  = ${LIBS}
-CC = gcc
+
+CXXFLAGS ?= -Wall -g
+CXXFLAGS += -std=c++17
+CXXFLAGS += `pkg-config --cflags x11 libglog`
+LDFLAGS += `pkg-config --libs x11 libglog`
+
+all: mywm build-clean
 
 
-DESDIR = ./out/
-SRCDIR = ./src/
+SOURCES = src/main.cpp
 
-SRC = ${SRCDIR}util.c ${SRCDIR}mywm.c 
-OBJ = ${SRC:.c=.o}
+OBJECTS = $(SOURCES:.cpp=.o)
 
-all:  mywm build-clean
+mywm: $(OBJECTS)
+	$(CXX) -o out/$@ $(OBJECTS) $(LDFLAGS)
 
-.c.o: ${CC} -c ${CFLAGS} $<
 
-mywm: ${OBJ} 
-	${CC} -o ${DESDIR}$@ ${OBJ} ${LDFLAGS}
 
 build-clean:
-	rm -f ${SRCDIR}*.o	
+	rm -f src/*.o	
 
+.PHONY: clean
 clean:
-	rm -f ${DESDIR}mywm
-	
-install: all
-	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f ${DESDIR}mywm ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/mywm
-
-uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/mywm
- 
-.PHONY: all mywm  build-clean install  uninstall
+	rm -f basic_wm $(OBJECTS)
