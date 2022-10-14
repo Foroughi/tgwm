@@ -30,4 +30,12 @@ mywm: ${OBJ}
 build-clean:
 	rm -f ${SRCDIR}*.o	
 
-.PHONY: all  
+install: all
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	cp -f ${DESDIR}mywm ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/mywm
+
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/mywm
+ 
+.PHONY: all mywm  build-clean install  uninstall
