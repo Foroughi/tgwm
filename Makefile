@@ -6,8 +6,7 @@ LDFLAGS += `pkg-config --libs x11 libglog`
 
 all: mywm build-clean
 
-
-SOURCES = src/main.cpp
+SOURCES = src/wm.h src/util.h src/main.cpp 
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

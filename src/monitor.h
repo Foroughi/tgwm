@@ -1,0 +1,6 @@
+class Monitor{
+
+private:
+public:
+
+};
