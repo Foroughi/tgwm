@@ -1,0 +1,8 @@
+client.o: src/client.cpp src/client.h src/util.h
+main.o: src/main.cpp src/windowmanager.h src/monitor.h src/util.h \
+ src/tag.h src/client.h
+monitor.o: src/monitor.cpp src/monitor.h src/util.h src/tag.h \
+ src/client.h
+tag.o: src/tag.cpp src/tag.h src/client.h src/util.h
+windowmanager.o: src/windowmanager.cpp src/windowmanager.h src/monitor.h \
+ src/util.h src/tag.h src/client.h

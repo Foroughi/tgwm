@@ -1,21 +1,38 @@
 
-CXXFLAGS ?= -Wall -g
-CXXFLAGS += -std=c++1y
-CXXFLAGS += `pkg-config --cflags x11 libglog`
-LDFLAGS += `pkg-config --libs x11 libglog`
+VERSION = 1.0
 
-all: mywm build-clean
+# X11
+X11INC = /usr/X11R6/include
+X11LIB = /usr/X11R6/lib
 
-SOURCES = src/wm.h src/util.h src/main.cpp 
+# Xinerama
+XINERAMALIBS  = -lXinerama
+XINERAMAFLAGS = -DXINERAMA
+
+# freetype
+FREETYPELIBS = -lfontconfig -lXft
+FREETYPEINC = /usr/include/freetype2
+
+INCS = -I${X11INC} -I${FREETYPEINC} 
+LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}  -lglog
+
+CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
+CXXFLAGS   = -std=c++1y -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
+LDFLAGS  = ${LIBS}
+
+
+
+all: mywm clean
+
+HEADERS = $(shell find ./src -name "*.h")
+SOURCES = $(shell find ./src -name "*.cpp")
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
-mywm: $(OBJECTS)
+mywm: $(HEADERS) $(OBJECTS)
 	$(CXX) -o out/$@ $(OBJECTS) $(LDFLAGS)
-
-build-clean:
-	rm -f src/*.o	
 
 .PHONY: clean
 clean:
-	rm -f basic_wm $(OBJECTS)
+	rm -f mywm $(OBJECTS)
+
