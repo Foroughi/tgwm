@@ -3,13 +3,13 @@
 #include <unordered_map>
 #include <glog/logging.h>
 #include <sstream>
-#include "windowmanager.h"
+#include "manager.h"
 
 int main(int argc, char **argv)
 {
     ::google::InitGoogleLogging(argv[0]);
        
-    WindowManager* wm = new WindowManager(XOpenDisplay(NULL));
+    Manager* wm = new Manager(XOpenDisplay(NULL));
 
     wm->Run();
     

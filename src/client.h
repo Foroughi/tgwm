@@ -1,7 +1,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <list>
+#include <vector>
 #include <unordered_map>
 #include "util.h"
 
@@ -9,10 +9,24 @@ class Client
 {
 
 private:
-    std::list<Client> SubClients;
-    Window Win;    
+    Window Win;
+    bool IsHidden = False;
+    Display *_Display;
+
+    Loc PreLocation;
 
 public:
-    Client(Window window);
+    Client(Display *display, Window window);
     ~Client();
+
+    void Show();
+    void Hide();
+
+    bool GetVisibilityStatus();
+
+    Loc GetSize();
+    void SetSize(int x , int y);
+
+    Loc GetLocation();
+    void SetLocation(int x , int y);
 };
