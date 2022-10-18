@@ -24,12 +24,13 @@ private:
     std::vector<Monitor *> Monitors;
     bool IsRunning;
     void Config();
-    Drw* draw;
+    Drw *draw;
+
 public:
     Manager(Display *display);
     ~Manager();
     void DrawBars();
-    void DrawBar(Monitor* mon);
+    void DrawBar(Monitor *mon);
     void Unframe(Window w);
     void Frame(Window w, bool was_created_before_window_manager);
     void OnConfigureRequest(const XConfigureRequestEvent &e);
@@ -43,6 +44,7 @@ public:
     void OnConfigureNotify(const XConfigureEvent &e);
     void reparentAlreadyOpenWindows();
     void OnKeyPress(const XKeyEvent &e);
+    void OnMouseEnter(const XCrossingEvent &e);
     void Run();
     static int OnXError(Display *display, XErrorEvent *e);
 

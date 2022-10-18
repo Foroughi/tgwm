@@ -9,6 +9,15 @@
 void Manager::Config()
 {
 
+    std::vector<Tag *> tags[] = {
+        {new Tag("sys "),
+         new Tag("dev "),
+         new Tag("www "),
+         new Tag("term"),
+         new Tag("misc")},
+        {new Tag("www "),
+         new Tag("misc")}};
+
 #ifdef XINERAMA
 
     if (XineramaIsActive(this->CurrentDisplay))
@@ -19,28 +28,25 @@ void Manager::Config()
         int monitorCount;
 
         Monitor *m;
-        auto  info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
+        int w = 0;
+        auto info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
 
-        
         for (int i = 0; i < monitorCount; i++)
         {
-            auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay),
-                                   {
-
-                                       new Tag( std::to_string(monitorCount)),
-                                       new Tag("dev"),
-                                       new Tag("www")
-
-                                   });
-
+            auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number,
+                                   tags[info[i].screen_number]);
 
             LOG(INFO) << "using Xinerama" << info[i].width << " " << info[i].height;
+
             mon->SetSize(info[i].width, info[i].height);
+            mon->SetLoc(info[i].x_org, info[i].y_org);
 
             mon->OnSelectedTagChanged = [=](int Index)
             {
                 this->DrawBars();
             };
+
+            // this->DrawBars();
 
             this->Monitors.push_back(mon);
         }
@@ -48,15 +54,10 @@ void Manager::Config()
     else
 #endif
     {
+
         LOG(INFO) << "Not using Xinerama";
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay),
-                               {
-
-                                   new Tag("sys"),
-                                   new Tag("dev"),
-                                   new Tag("www")
-
-                               });
+                               tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
 
@@ -97,7 +98,7 @@ void Manager::DrawBars()
     }
 }
 
-GC create_gc(Display *display, Window win)
+GC create_gc(Display *display, Window win, int Screen)
 {
     GC gc;                       /* handle of newly created GC.  */
     unsigned long valuemask = 0; /* which values in 'values' to  */
@@ -107,7 +108,7 @@ GC create_gc(Display *display, Window win)
     int line_style = LineSolid;  /* style for lines drawing and  */
     int cap_style = CapButt;     /* style of the line's edje and */
     int join_style = JoinBevel;  /*  joined lines.		*/
-    int screen_num = DefaultScreen(display);
+    int screen_num = Screen;
 
     gc = XCreateGC(display, win, valuemask, &values);
     if (gc < 0)
@@ -115,8 +116,8 @@ GC create_gc(Display *display, Window win)
         fprintf(stderr, "XCreateGC: \n");
     }
 
-    XSetForeground(display, gc, WhitePixel(display, screen_num));
-    XSetBackground(display, gc, BlackPixel(display, screen_num));
+    XSetForeground(display, gc, WhitePixel(display, Screen));
+    XSetBackground(display, gc, BlackPixel(display, Screen));
 
     /* define the style of lines that will be drawn using this GC. */
     XSetLineAttributes(display, gc,
@@ -131,10 +132,12 @@ GC create_gc(Display *display, Window win)
 void Manager::DrawBar(Monitor *mon)
 {
 
-    GC gc = create_gc(this->CurrentDisplay, this->root);
+    GC gc = create_gc(this->CurrentDisplay, this->root, mon->GetScreen());
 
+
+    XSetForeground(this->CurrentDisplay, gc, 0xffffff);
     // XDrawRectangle(this->CurrentDisplay, this->root, gc, 120, 150, 50, 60);
-    XFillRectangle(this->CurrentDisplay, this->root, gc, 0, 0, mon->GetSize().x, TOP_BAR_HEIGHT);
+    XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x,  mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
 
     // int num_stuff = sizeof(stuff) / sizeof(XTextItem);
 
@@ -152,7 +155,7 @@ void Manager::DrawBar(Monitor *mon)
         XTextItem stuff[] = {
             {it->GetName().data(), it->GetName().length(), 5, None}};
 
-        XDrawText(this->CurrentDisplay, this->root, gc, i * TAG_LENGHT, 13, stuff, 1);
+        XDrawText(this->CurrentDisplay, this->root, gc, mon->GetLoc().x + (i * TAG_LENGHT), 13, stuff, 1);
 
         i++;
     }
@@ -208,12 +211,27 @@ void grabkeys(Display *dpy, Window win)
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F2), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F3), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
                  True, GrabModeAsync, GrabModeAsync);
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h, win,
                  True, GrabModeAsync, GrabModeAsync);
     }
 }
@@ -248,7 +266,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
     clients_[w] = frame;
-    XResizeWindow(this->CurrentDisplay, w, this->Monitors[0]->GetSize().x - 20, this->Monitors[0]->GetSize().y - 20 - TOP_BAR_HEIGHT);
+    XResizeWindow(this->CurrentDisplay, w, (this->Monitors[0]->GetSize().x - 20), this->Monitors[0]->GetSize().y - 20 - TOP_BAR_HEIGHT);
     this->Monitors[0]->GetSelectedTag()->AddClient(this->CurrentDisplay, frame);
 
     // XGrabButton(this->CurrentDisplay, Button1, Mod1Mask, w, false, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, GrabModeAsync, GrabModeAsync, None, None);
@@ -344,10 +362,18 @@ void Manager::reparentAlreadyOpenWindows()
     XUngrabServer(this->CurrentDisplay);
 }
 
+void Manager::OnMouseEnter(const XCrossingEvent &e){
+
+    Client *c;
+	Monitor *m;
+	
+	XSetInputFocus(this->CurrentDisplay, e.window, RevertToPointerRoot, CurrentTime);
+}
+
 void Manager::OnKeyPress(const XKeyEvent &e)
 {
-
-    LOG(INFO) << e.type;
+    if(e.type != MotionNotify)
+        LOG(INFO) << e.type;
 
     if (e.state & HOTKEY)
     {
@@ -367,9 +393,32 @@ void Manager::OnKeyPress(const XKeyEvent &e)
         {
             this->Monitors[0]->SelectTagByIndex(2);
         }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("4")))
+        {
+            this->Monitors[0]->SelectTagByIndex(3);
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("5")))
+        {
+            this->Monitors[0]->SelectTagByIndex(4);
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("6")))
+        {
+            this->Monitors[1]->SelectTagByIndex(0);
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("7")))
+        {
+            this->Monitors[1]->SelectTagByIndex(1);
+        }
+
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F2")))
         {
             start("xterm");
+
+            // reparentAlreadyOpenWindows(display , this->root);
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F3")))
+        {
+            start("code");
 
             // reparentAlreadyOpenWindows(display , this->root);
         }
@@ -422,7 +471,8 @@ void Manager::Run()
 
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);
-        LOG(INFO) << "Received event: " << ToString(e);
+        if(e.type != MotionNotify)
+            LOG(INFO) << "Received event: " << ToString(e);
 
         switch (e.type)
         {
@@ -470,6 +520,8 @@ void Manager::Run()
         case KeyRelease:
             // OnKeyRelease(e.xkey);
             break;
+        case EnterNotify :
+            OnMouseEnter(e.xcrossing);
         default:
             LOG(WARNING) << "Ignored event";
         }

@@ -14,6 +14,7 @@ class Monitor
 {
 
 private:
+    
     Loc Location;
     Loc Size;
     Loc WindowLocatin;
