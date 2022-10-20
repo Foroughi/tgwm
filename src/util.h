@@ -3,9 +3,17 @@
 #include <glog/logging.h>
 #include <X11/Xlib.h>
 #include <X11/Xft/Xft.h>
+#include <fstream>
 
 #ifndef __UTIL__
 #define __UTIL__
+
+
+#define TOP_BAR_HEIGHT 20
+#define TAG_LENGHT 30
+#define GAP 10
+#define BORDER_WIDTH 3
+#define HOTKEY Mod1Mask
 
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -28,7 +36,6 @@ static const char *colors[][3]      = {
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
 #define BETWEEN(X, A, B)        ((A) <= (X) && (X) <= (B))
 
-
 struct Loc{
     int x;
     int y;
@@ -39,6 +46,15 @@ std::string ToString(const XEvent &e);
 
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
+
+enum Layouts{
+	Layouts_Horizontal,
+	Layouts_Vertical
+};
+
+
+
+void Log(std::string log);
 
 
 #endif

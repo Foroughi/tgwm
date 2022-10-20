@@ -20,8 +20,10 @@ class Manager
 private:
     Display *CurrentDisplay;
     Window root;
-    std::unordered_map<Window, Window> clients_;
+    //std::unordered_map<Window, Window> clients_;
     std::vector<Monitor *> Monitors;
+    Monitor* SelectedMonitor;
+    Client *SelectedClient;
     bool IsRunning;
     void Config();
     Drw *draw;
@@ -45,9 +47,17 @@ public:
     void reparentAlreadyOpenWindows();
     void OnKeyPress(const XKeyEvent &e);
     void OnMouseEnter(const XCrossingEvent &e);
+    void OnMouseLeave(const XCrossingEvent &e);
     void Run();
+    Client * FindClientByWin(Window w);
+    Monitor* FindMonitorByClient(Client* client);
     static int OnXError(Display *display, XErrorEvent *e);
-
+    void onFocusIn(XFocusChangeEvent &e);
+    void OnMotionNotify(XMotionEvent &e);
+    Client * GetSelectedClient();
+    void MoveSelectedClient(Monitor* mon ,int index);
+    void SelectClient(Client *client);
+    void SortAll();
     void onSelectedTagChanged(int Index);
 };
 

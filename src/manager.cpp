@@ -1,30 +1,21 @@
 #include "manager.h"
 
-#define TOP_BAR_HEIGHT 20
-#define TAG_LENGHT 30
-#define GAP 10
-#define BORDER_WIDTH 3
-#define HOTKEY Mod1Mask
-
 void Manager::Config()
 {
 
     std::vector<Tag *> tags[] = {
-        {new Tag("sys "),
-         new Tag("dev "),
-         new Tag("www "),
-         new Tag("term"),
-         new Tag("misc")},
-        {new Tag("www "),
-         new Tag("misc")}};
+        {new Tag(0, "sys "),
+         new Tag(1, "dev "),
+         new Tag(2, "www "),
+         new Tag(3, "term"),
+         new Tag(4, "misc")},
+        {new Tag(0, "www "),
+         new Tag(1, "misc")}};
 
 #ifdef XINERAMA
 
     if (XineramaIsActive(this->CurrentDisplay))
     {
-
-        LOG(INFO) << "using Xinerama";
-
         int monitorCount;
 
         Monitor *m;
@@ -36,13 +27,12 @@ void Manager::Config()
             auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number,
                                    tags[info[i].screen_number]);
 
-            LOG(INFO) << "using Xinerama" << info[i].width << " " << info[i].height;
-
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
 
             mon->OnSelectedTagChanged = [=](int Index)
             {
+                this->SortAll();
                 this->DrawBars();
             };
 
@@ -72,6 +62,8 @@ void Manager::Config()
 
         this->Monitors.push_back(mon);
     }
+
+    this->SelectedMonitor = this->Monitors[0];
 }
 
 void Manager::onSelectedTagChanged(int Index)
@@ -134,10 +126,9 @@ void Manager::DrawBar(Monitor *mon)
 
     GC gc = create_gc(this->CurrentDisplay, this->root, mon->GetScreen());
 
-
     XSetForeground(this->CurrentDisplay, gc, 0xffffff);
     // XDrawRectangle(this->CurrentDisplay, this->root, gc, 120, 150, 50, 60);
-    XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x,  mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
+    XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x, mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
 
     // int num_stuff = sizeof(stuff) / sizeof(XTextItem);
 
@@ -147,13 +138,16 @@ void Manager::DrawBar(Monitor *mon)
     auto i = 0;
     for (auto it : mon->GetTags())
     {
+
         if (it == mon->GetSelectedTag())
             XSetForeground(this->CurrentDisplay, gc, 0xff0000);
         else
             XSetForeground(this->CurrentDisplay, gc, BlackPixel(this->CurrentDisplay, mon->GetScreen()));
 
         XTextItem stuff[] = {
-            {it->GetName().data(), it->GetName().length(), 5, None}};
+            //{std::to_string(mon->GetClients(it->GetIndex()).size()).data(), 0 it->GetName().length(), 5, None}};
+
+            {it->GetName().data(), 4, 5, None}};
 
         XDrawText(this->CurrentDisplay, this->root, gc, mon->GetLoc().x + (i * TAG_LENGHT), 13, stuff, 1);
 
@@ -165,15 +159,18 @@ void Manager::Unframe(Window w)
 {
 
     // const Window frame = clients_[w];
+    Client *c = this->SelectedMonitor->FindByWindow(w);
 
-    const Window frame = clients_[w];
+    const Window frame = c->GetFrame();
 
     XUnmapWindow(this->CurrentDisplay, frame);
     XReparentWindow(this->CurrentDisplay, w, this->root, 0, 0);
     XRemoveFromSaveSet(this->CurrentDisplay, w);
     XDestroyWindow(this->CurrentDisplay, frame);
 
-    clients_.erase(w);
+    this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
+
+    this->SelectedMonitor->Sort();
 
     LOG(INFO) << "Unframed window " << w << " [" << frame << "]";
 }
@@ -214,24 +211,52 @@ void grabkeys(Display *dpy, Window win)
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F3), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
                  True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h | ControlMask, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h | ControlMask, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h | ControlMask, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h | ControlMask, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h | ControlMask, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), h, win,
                  True, GrabModeAsync, GrabModeAsync);
     }
 }
@@ -239,7 +264,7 @@ void grabkeys(Display *dpy, Window win)
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
 
-    const unsigned long BORDER_COLOR = 0xff0000;
+    const unsigned long BORDER_COLOR = 0x0000ff;
     const unsigned long BG_COLOR = 0x0000ff;
 
     XWindowAttributes x_window_attrs;
@@ -254,20 +279,23 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         }
     }
 
-    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, GAP, TOP_BAR_HEIGHT + GAP, this->Monitors[0]->GetSize().x - 20, this->Monitors[0]->GetSize().y - 20 - TOP_BAR_HEIGHT, BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
+    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
 
     // XSelectInput(this->CurrentDisplay, frame, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     XSelectInput(
         this->CurrentDisplay,
         frame,
-        SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask);
+        SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | LeaveWindowMask | EnterWindowMask);
 
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
-    clients_[w] = frame;
-    XResizeWindow(this->CurrentDisplay, w, (this->Monitors[0]->GetSize().x - 20), this->Monitors[0]->GetSize().y - 20 - TOP_BAR_HEIGHT);
-    this->Monitors[0]->GetSelectedTag()->AddClient(this->CurrentDisplay, frame);
+    // clients_[w] = frame;
+
+    this->SelectedMonitor->AddClient(this->CurrentDisplay, frame, w, this->SelectedMonitor->GetSelectedTag()->GetIndex());
+
+    this->SelectedMonitor->Sort();
+    // XResizeWindow(this->CurrentDisplay, w, (this->SelectedMonitor->GetSize().x - 20), this->SelectedMonitor->GetSize().y - 20 - TOP_BAR_HEIGHT);
 
     // XGrabButton(this->CurrentDisplay, Button1, Mod1Mask, w, false, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, GrabModeAsync, GrabModeAsync, None, None);
     // XGrabButton(this->CurrentDisplay, Button3, Mod1Mask, w, false, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, GrabModeAsync, GrabModeAsync, None, None);
@@ -279,6 +307,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
 void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 {
+
     XWindowChanges changes;
     changes.x = e.x;
     changes.y = e.y;
@@ -287,12 +316,17 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     changes.border_width = e.border_width;
     changes.sibling = e.above;
     changes.stack_mode = e.detail;
-    if (clients_.count(e.window))
+
+    auto c = this->SelectedMonitor->FindByWindow(e.window);
+
+    if (c != NULL)
     {
-        const Window frame = clients_[e.window];
+
+        const Window frame = c->GetFrame();
         XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
         LOG(INFO) << "Resize [" << frame << "] to " << e.width << " " << e.height;
     }
+
     XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
     LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
 }
@@ -323,7 +357,7 @@ void Manager::OnMapNotify(const XMapEvent &e) {}
 
 void Manager::OnUnmapNotify(const XUnmapEvent &e)
 {
-    if (!clients_.count(e.window))
+    if (this->SelectedMonitor->FindByWindow(e.window) == NULL)
     {
         LOG(INFO) << "Ignore UnmapNotify for non-client window " << e.window;
         return;
@@ -362,17 +396,55 @@ void Manager::reparentAlreadyOpenWindows()
     XUngrabServer(this->CurrentDisplay);
 }
 
-void Manager::OnMouseEnter(const XCrossingEvent &e){
+void Manager::OnMouseEnter(const XCrossingEvent &e)
+{
 
-    Client *c;
-	Monitor *m;
-	
-	XSetInputFocus(this->CurrentDisplay, e.window, RevertToPointerRoot, CurrentTime);
+    if (e.window == this->root)
+    {
+        this->SelectClient(NULL);
+
+        return;
+    }
+
+    for (auto it : this->Monitors)
+    {
+
+        auto c = it->FindByFrame(e.window);
+
+        if (c != NULL)
+        {
+
+            if (it != this->SelectedMonitor)
+                this->SelectedMonitor = it;
+
+            this->SelectClient(c);
+
+            break;
+        }
+    }
+}
+
+void Manager::OnMouseLeave(const XCrossingEvent &e)
+{
+
+    // if (e.window != this->root)
+    // {
+    //     Client* c = this->FindClientByWin(e.window);
+
+    //     if(c)
+    //     {
+
+    //         c->
+
+    //     }
+
+    //     return;
+    // }
 }
 
 void Manager::OnKeyPress(const XKeyEvent &e)
 {
-    if(e.type != MotionNotify)
+    if (e.type != MotionNotify)
         LOG(INFO) << e.type;
 
     if (e.state & HOTKEY)
@@ -383,46 +455,194 @@ void Manager::OnKeyPress(const XKeyEvent &e)
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
         {
-            this->Monitors[0]->SelectTagByIndex(0);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[0], 0);
+                this->SortAll();
+            }
+            else
+                this->Monitors[0]->SelectTagByIndex(0);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("2")))
         {
-            this->Monitors[0]->SelectTagByIndex(1);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[0], 1);
+                this->SortAll();
+            }
+            else
+                this->Monitors[0]->SelectTagByIndex(1);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("3")))
         {
-            this->Monitors[0]->SelectTagByIndex(2);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[0], 2);
+                this->SortAll();
+            }
+            else
+                this->Monitors[0]->SelectTagByIndex(2);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("4")))
         {
-            this->Monitors[0]->SelectTagByIndex(3);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[0], 3);
+                this->SortAll();
+            }
+            else
+                this->Monitors[0]->SelectTagByIndex(3);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("5")))
         {
-            this->Monitors[0]->SelectTagByIndex(4);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[0], 4);
+                this->SortAll();
+            }
+            else
+                this->Monitors[0]->SelectTagByIndex(4);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("6")))
         {
-            this->Monitors[1]->SelectTagByIndex(0);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[1], 0);
+                this->SortAll();
+            }
+            else
+                this->Monitors[1]->SelectTagByIndex(0);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("7")))
         {
-            this->Monitors[1]->SelectTagByIndex(1);
+            if (e.state & ControlMask)
+            {
+                this->MoveSelectedClient(this->Monitors[1], 1);
+                this->SortAll();
+            }
+            else
+                this->Monitors[1]->SelectTagByIndex(1);
         }
 
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F2")))
         {
             start("xterm");
-
-            // reparentAlreadyOpenWindows(display , this->root);
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F3")))
         {
             start("code");
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
+        {
+            // start("google-chrome");
 
-            // reparentAlreadyOpenWindows(display , this->root);
+            std::string str = "";
+
+            for (auto mon : this->Monitors)
+            {
+                str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
+
+                str += "Tags :\n";
+                for (auto it : mon->GetTags())
+                {
+                    str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
+                }
+
+                str += "\nClients :\n";
+                for (auto it : mon->GetClients(-1))
+                {
+                    str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
+                }
+            }
+
+            Log(str);
+        }
+
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("x")))
+        {
+            if (this->GetSelectedClient())
+            {
+                this->SelectedMonitor->RemoveClient(this->GetSelectedClient());
+                this->SelectedMonitor->Sort();
+            }
         }
     }
+}
+
+int Manager::OnXError(Display *display, XErrorEvent *e)
+{
+
+    const int MAX_ERROR_TEXT_LENGTH = 1024;
+    char error_text[MAX_ERROR_TEXT_LENGTH];
+    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
+
+    return 0;
+}
+
+void Manager::onFocusIn(XFocusChangeEvent &e)
+{
+}
+
+void Manager::SortAll()
+{
+
+    for (auto it : this->Monitors)
+        it->Sort();
+}
+
+void Manager::OnMotionNotify(XMotionEvent &e)
+{
+    if (this->Monitors.size() > 1)
+    {
+        if (e.x > 1920)
+            this->SelectedMonitor = this->Monitors[1];
+        else
+            this->SelectedMonitor = this->Monitors[0];
+    }
+    else
+        this->SelectedMonitor = this->Monitors[0];
+}
+
+Client *Manager::GetSelectedClient()
+{
+    return this->SelectedClient;
+}
+
+void Manager::SelectClient(Client *client)
+{
+    if (this->SelectedClient)
+
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0x0000ff);
+
+    if (client)
+    {
+        this->SelectedClient = client;
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0xff0000);
+
+        XSetInputFocus(this->CurrentDisplay, client->GetWindow(), RevertToPointerRoot, CurrentTime);
+    }
+    else
+    {
+        this->SelectedClient = NULL;
+        XSetInputFocus(this->CurrentDisplay, this->root, RevertToPointerRoot, CurrentTime);
+    }
+}
+
+void Manager::MoveSelectedClient(Monitor *mon, int index)
+{
+
+    if(!this->SelectedClient)
+        return;
+
+    for (auto it : this->Monitors)
+    {
+        it->RemoveClient(this->SelectedClient);
+        if (it == mon)
+            it->AddClient(this->SelectedClient);
+    }
+
+    this->SelectedClient->SetTagIndex(index);
+    // this->SelectedClient->Hide();
 }
 
 void Manager::Run()
@@ -438,28 +658,28 @@ void Manager::Run()
     grabkeys(this->CurrentDisplay, this->root);
 
     XSetErrorHandler(OnXError);
-    XGrabServer(this->CurrentDisplay);
+    // XGrabServer(this->CurrentDisplay);
 
-    Window returned_root, returned_parent;
-    Window *top_level_windows;
-    unsigned int num_top_level_windows;
-    CHECK(XQueryTree(
-        this->CurrentDisplay,
-        this->root,
-        &returned_root,
-        &returned_parent,
-        &top_level_windows,
-        &num_top_level_windows));
-    CHECK_EQ(returned_root, this->root);
+    // Window returned_root, returned_parent;
+    // Window *top_level_windows;
+    // unsigned int num_top_level_windows;
+    // CHECK(XQueryTree(
+    //     this->CurrentDisplay,
+    //     this->root,
+    //     &returned_root,
+    //     &returned_parent,
+    //     &top_level_windows,
+    //     &num_top_level_windows));
+    // CHECK_EQ(returned_root, this->root);
 
-    for (unsigned int i = 0; i < num_top_level_windows; ++i)
-    {
-        Frame(top_level_windows[i], true);
-    }
+    // for (unsigned int i = 0; i < num_top_level_windows; ++i)
+    // {
+    //     Frame(top_level_windows[i], true);
+    // }
 
-    XFree(top_level_windows);
+    // XFree(top_level_windows);
 
-    XUngrabServer(this->CurrentDisplay);
+    // XUngrabServer(this->CurrentDisplay);
 
     // XGrabKey(this->CurrentDisplay, XKeysymToKeycode(this->CurrentDisplay, XK_F1), HOTKEY, this->root, True, GrabModeAsync, GrabModeAsync);
 
@@ -471,7 +691,7 @@ void Manager::Run()
 
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);
-        if(e.type != MotionNotify)
+        if (e.type != MotionNotify)
             LOG(INFO) << "Received event: " << ToString(e);
 
         switch (e.type)
@@ -508,11 +728,11 @@ void Manager::Run()
             break;
         case MotionNotify:
             // Skip any already pending motion events.
-            // while (XCheckTypedWindowEvent(
-            //     this->CurrentDisplay, e.xmotion.window, MotionNotify, &e))
-            // {
-            // }
-            // OnMotionNotify(e.xmotion);
+            while (XCheckTypedWindowEvent(
+                this->CurrentDisplay, e.xmotion.window, MotionNotify, &e))
+            {
+            }
+            OnMotionNotify(e.xmotion);
             break;
         case KeyPress:
             OnKeyPress(e.xkey);
@@ -520,20 +740,18 @@ void Manager::Run()
         case KeyRelease:
             // OnKeyRelease(e.xkey);
             break;
-        case EnterNotify :
+        case EnterNotify:
             OnMouseEnter(e.xcrossing);
+            break;
+        case LeaveNotify:
+            OnMouseLeave(e.xcrossing);
+            break;
+        case FocusIn:
+        case FocusOut:
+            onFocusIn(e.xfocus);
+            break;
         default:
             LOG(WARNING) << "Ignored event";
         }
     }
-}
-
-int Manager::OnXError(Display *display, XErrorEvent *e)
-{
-
-    const int MAX_ERROR_TEXT_LENGTH = 1024;
-    char error_text[MAX_ERROR_TEXT_LENGTH];
-    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
-
-    return 0;
 }

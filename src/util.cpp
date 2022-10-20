@@ -81,3 +81,12 @@ void * ecalloc(size_t nmemb, size_t size)
 		die("calloc:");
 	return p;
 }
+
+void Log(std::string log)
+{
+     
+  std::ofstream MyFile("./log.txt");  
+  MyFile << log;  
+  MyFile.close();
+
+}

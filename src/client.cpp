@@ -1,14 +1,24 @@
 #include "client.h"
 
-Client::Client(Display *display, Window window) : Win(window), _Display(display) {}
+Client::Client(Display *display, Loc monitorLoc, Window frame, Window window, int tagIndex) : MonitorLoc(monitorLoc), Frame(frame), Win(window), _Display(display), TagIndex(tagIndex) {}
 Client::~Client() {}
+
+Window Client::GetWindow()
+{
+    return this->Win;
+}
+
+Window Client::GetFrame()
+{
+    return this->Frame;
+}
 
 void Client::Show()
 {
 
     this->IsHidden = False;
 
-    this->SetLocation(this->PreLocation.x, this->PreLocation.y);
+    //this->SetLocation(this->PreLocation.x, this->PreLocation.y);
 }
 void Client::Hide()
 {
@@ -16,8 +26,8 @@ void Client::Hide()
 
     auto width = this->GetSize().x;
 
-    this->PreLocation = this->GetLocation();
-    this->SetLocation(width * -2, 0);
+    //this->PreLocation = this->GetLocation();
+    this->SetLocation(width * -4, 0);
 }
 
 bool Client::GetVisibilityStatus()
@@ -30,7 +40,7 @@ Loc Client::GetSize()
 {
 
     static XWindowAttributes wa;
-    !XGetWindowAttributes(this->_Display, this->Win, &wa);
+    !XGetWindowAttributes(this->_Display, this->Frame, &wa);
 
     Loc l;
     l.x = wa.width;
@@ -41,14 +51,15 @@ Loc Client::GetSize()
 
 void Client::SetSize(int x, int y)
 {
-    XResizeWindow(this->_Display, this->Win, x, y);
+    XResizeWindow(this->_Display, this->Frame, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
+    XResizeWindow(this->_Display, this->Win, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
 }
 
 Loc Client::GetLocation()
 {
 
     static XWindowAttributes wa;
-    !XGetWindowAttributes(this->_Display, this->Win, &wa);
+    !XGetWindowAttributes(this->_Display, this->Frame, &wa);
 
     Loc l;
     l.x = wa.x;
@@ -59,5 +70,22 @@ Loc Client::GetLocation()
 
 void Client::SetLocation(int x, int y)
 {
-    XMoveWindow(this->_Display, this->Win, x, y);
+
+    XMoveWindow(this->_Display, this->Frame, x,  y);
+    XMoveWindow(this->_Display, this->Win, 0, 0);
+}
+
+int Client::GetTagIndex()
+{
+    return this->TagIndex;
+}
+
+void Client::SetTagIndex(int index)
+{
+    this->TagIndex = index;
+}
+
+void Client::ChangeMonitor(Loc monitorLoc)
+{
+    this->MonitorLoc = monitorLoc;
 }
