@@ -126,7 +126,7 @@ void Manager::DrawBar(Monitor *mon)
 
     GC gc = create_gc(this->CurrentDisplay, this->root, mon->GetScreen());
 
-    XSetForeground(this->CurrentDisplay, gc, 0xffffff);
+    XSetForeground(this->CurrentDisplay, gc, TOPBAR_BG);
     // XDrawRectangle(this->CurrentDisplay, this->root, gc, 120, 150, 50, 60);
     XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x, mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
 
@@ -140,9 +140,9 @@ void Manager::DrawBar(Monitor *mon)
     {
 
         if (it == mon->GetSelectedTag())
-            XSetForeground(this->CurrentDisplay, gc, 0xff0000);
+            XSetForeground(this->CurrentDisplay, gc, TOPBAR_SELECTED_FG);
         else
-            XSetForeground(this->CurrentDisplay, gc, BlackPixel(this->CurrentDisplay, mon->GetScreen()));
+            XSetForeground(this->CurrentDisplay, gc, TOPBAR_FG);
 
         XTextItem stuff[] = {
             //{std::to_string(mon->GetClients(it->GetIndex()).size()).data(), 0 it->GetName().length(), 5, None}};
@@ -265,10 +265,7 @@ void grabkeys(Display *dpy, Window win)
 }
 
 void Manager::Frame(Window w, bool was_created_before_window_manager)
-{
-
-    const unsigned long BORDER_COLOR = 0x0000ff;
-    const unsigned long BG_COLOR = 0x0000ff;
+{  
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
@@ -282,7 +279,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         }
     }
 
-    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
+    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
 
     // XSelectInput(this->CurrentDisplay, frame, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     XSelectInput(
@@ -617,12 +614,12 @@ void Manager::SelectClient(Client *client)
 {
     if (this->SelectedClient)
 
-        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0x0000ff);
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), CLIENT_NORMAL_BCOLOR);
 
     if (client)
     {
         this->SelectedClient = client;
-        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0xff0000);
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), CLIENT_SELECTED_BCOLOR);
 
         XSetInputFocus(this->CurrentDisplay, client->GetWindow(), RevertToPointerRoot, CurrentTime);
     }
