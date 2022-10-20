@@ -48,7 +48,7 @@ public:
     void OnKeyPress(const XKeyEvent &e);
     void OnMouseEnter(const XCrossingEvent &e);
     void OnMouseLeave(const XCrossingEvent &e);
-    void Run();
+    int Run();
     Client * FindClientByWin(Window w);
     Monitor* FindMonitorByClient(Client* client);
     static int OnXError(Display *display, XErrorEvent *e);

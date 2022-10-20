@@ -11,7 +11,7 @@ int main(int argc, char **argv)
        
     Manager* wm = new Manager(XOpenDisplay(NULL));
 
-    wm->Run();
-    
-    return EXIT_SUCCESS;
+    auto res = wm->Run();         
+
+    return res;
 }

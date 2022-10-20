@@ -214,6 +214,9 @@ void grabkeys(Display *dpy, Window win)
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F5), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
@@ -534,8 +537,10 @@ void Manager::OnKeyPress(const XKeyEvent &e)
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
         {
-            // start("google-chrome");
-
+            start("google-chrome");
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F5")))
+        {            
             std::string str = "";
 
             for (auto mon : this->Monitors)
@@ -645,7 +650,7 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
     // this->SelectedClient->Hide();
 }
 
-void Manager::Run()
+int Manager::Run()
 {
 
     XSelectInput(
@@ -686,7 +691,7 @@ void Manager::Run()
     this->Config();
     this->DrawBars();
 
-    while (IsRunning)
+    while (IsRunning)    
     {
 
         XEvent e;
@@ -754,4 +759,9 @@ void Manager::Run()
             LOG(WARNING) << "Ignored event";
         }
     }
+
+
+    XSync(this->CurrentDisplay, False);		
+	XCloseDisplay(this->CurrentDisplay);
+	return EXIT_SUCCESS;
 }

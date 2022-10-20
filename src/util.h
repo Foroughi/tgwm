@@ -13,7 +13,7 @@
 #define TAG_LENGHT 30
 #define GAP 10
 #define BORDER_WIDTH 3
-#define HOTKEY Mod1Mask
+#define HOTKEY Mod4Mask
 
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
