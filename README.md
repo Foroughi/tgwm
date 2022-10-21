@@ -48,5 +48,5 @@ These are the two projects that showed me the ropes.
 
 1. [Suckless DWM Project](https://dwm.suckless.org/)
 2. [Basic_wm](https://github.com/jichu4n/basic_wm)
-3. My friend Amin who help me to pick up a suitable, yet most underrated name for the project.
+3. My friend Amin who helped me pick up a suitable, yet most underrated name for the project.
 
