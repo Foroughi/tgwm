@@ -1,7 +1,7 @@
 # TG Window manager
 This is my personal Debian window manager based-on X11 and written in C++. Even though I did my best to keep configurable or customizable for any setup, but still it's still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
 
-Also, it's safe to say that since this repository is still under development, there is a good chance of encountering bugs or failures. For the same reason, lots of features yet are missing. But any bug report will be appreciated.
+Also, it's safe to say that since this repository is still under development, there is a good chance of encountering bugs or failures. But any bug report, ideas or suggestions will be appreciated. Also, lots of features yet are missing which I try to do more on the weekends or in my spare time.
 
 ### Dependencies
 The following libraries have been used :
@@ -48,4 +48,5 @@ These are the two projects that showed me the ropes.
 
 1. [Suckless DWM Project](https://dwm.suckless.org/)
 2. [Basic_wm](https://github.com/jichu4n/basic_wm)
+3. My friend Amin who help me to pick up a suitable, yet most underrated name for the project.
 
