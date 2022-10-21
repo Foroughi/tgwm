@@ -1,12 +1,12 @@
 # TG Window manager
-This is my personal Debian window manager based-on X11 and written in C++. Even though I did my best to keep configurable or customizable for any setup, but still it's still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
+This is my personal Debian window manager based-on X11 and written in C++. Even though I did my best to keep configurable or customizable for any setup, but still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
 
 Also, it's safe to say that since this repository is still under development, there is a good chance of encountering bugs or failures. But any bug report, ideas or suggestions will be appreciated. Also, lots of features yet are missing which I try to do more on the weekends or in my spare time.
 
 ### Dependencies
 The following libraries have been used :
 
-1. [Xinerama](https://www.x.org/releases/current/doc/man/man3/Xinerama.3.xhtml) (To support multi-monitors setups)
+1. [Xinerama](https://www.x.org/releases/current/doc/man/man3/Xinerama.3.xhtml) (To support multi-monitor setups)
 2. [Xft](https://www.x.org/releases/current/doc/man/man3/Xft.3.xhtml) (Draw texts with a specific font and style)
 3. [Google glog library](https://github.com/google/glog)
 4. [Xephyr](https://www.x.org/archive/X11R7.5/doc/man/man1/Xephyr.1.html) (Virtual display emulator)
@@ -21,7 +21,7 @@ cd tgwm
 sudo make install
 ```
 
-make usre you change your `.xinit` files and run the `tgwm` using the following command
+make usre you change your `.xinit` file to bootstrap the `tgwm` using the following command
 ```
 exec tgwm
 ```
