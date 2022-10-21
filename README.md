@@ -13,7 +13,7 @@ The following libraries have been used :
 
 ### Installation
 
-Note : Make sure you have the necessary dependencies installed mentioned in the previous section.
+Note : Make sure you have the necessary dependencies mentioned in the previous section installed.
 
 ```
 git clone https://github.com/Foroughi/tgwm.git
