@@ -21,7 +21,7 @@ cd tgwm
 sudo make install
 ```
 
-make usre you change your `.xinit` file to bootstrap the `tgwm` using the following command
+make sure you change your `.xinit` file to bootstrap the `tgwm` using the following command
 ```
 exec tgwm
 ```
