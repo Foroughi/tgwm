@@ -3,13 +3,16 @@
 void Manager::Config()
 {
 
+    // start("nitrogen --restore");
+    start("compton");
+
     std::vector<Tag *> tags[] = {
-        {new Tag(0, "sys "),
-         new Tag(1, "dev "),
-         new Tag(2, "www "),
+        {new Tag(0, "sys"),
+         new Tag(1, "dev"),
+         new Tag(2, "www"),
          new Tag(3, "term"),
          new Tag(4, "misc")},
-        {new Tag(0, "www "),
+        {new Tag(0, "www"),
          new Tag(1, "misc")}};
 
 #ifdef XINERAMA
@@ -19,12 +22,19 @@ void Manager::Config()
         int monitorCount;
 
         Monitor *m;
-        int w = 0;
+
         auto info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
 
         for (int i = 0; i < monitorCount; i++)
         {
-            auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number,
+
+            const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, info[i].x_org, info[i].y_org, info[i].width, TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
+
+            XAddToSaveSet(this->CurrentDisplay, frame);
+            // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
+            XMapWindow(this->CurrentDisplay, frame);
+
+            auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number, frame,
                                    tags[info[i].screen_number]);
 
             mon->SetSize(info[i].width, info[i].height);
@@ -36,17 +46,22 @@ void Manager::Config()
                 this->DrawBars();
             };
 
-            // this->DrawBars();
-
             this->Monitors.push_back(mon);
         }
+
+        this->DrawBars();
     }
     else
 #endif
     {
 
-        LOG(INFO) << "Not using Xinerama";
-        auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay),
+        const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, DisplayWidth(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
+
+        // XAddToSaveSet(this->CurrentDisplay, frame);
+        // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
+        XMapWindow(this->CurrentDisplay, frame);
+
+        auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
                                tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
@@ -72,7 +87,6 @@ void Manager::onSelectedTagChanged(int Index)
 
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
-
     this->IsRunning = True;
 }
 
@@ -86,6 +100,7 @@ void Manager::DrawBars()
 
     for (auto it : this->Monitors)
     {
+
         this->DrawBar(it);
     }
 }
@@ -122,36 +137,24 @@ GC create_gc(Display *display, Window win, int Screen)
 }
 
 void Manager::DrawBar(Monitor *mon)
-{
+{        
 
-    GC gc = create_gc(this->CurrentDisplay, this->root, mon->GetScreen());
+    auto font = XftFontOpenName(this->CurrentDisplay,  DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
 
-    XSetForeground(this->CurrentDisplay, gc, TOPBAR_BG);
-    // XDrawRectangle(this->CurrentDisplay, this->root, gc, 120, 150, 50, 60);
-    XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x, mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
+    auto d = XftDrawCreate(this->CurrentDisplay, mon->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
-    // int num_stuff = sizeof(stuff) / sizeof(XTextItem);
+    XftColor normalcolor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_FG, &normalcolor);
 
-    XSetForeground(this->CurrentDisplay, gc, BlackPixel(this->CurrentDisplay, mon->GetScreen()));
-    // XSetBackground(display, gc, BlackPixel(display, screen_num));
+    XftColor selectedcolor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_SELECTED_FG, &selectedcolor);
 
-    auto i = 0;
+    int x = 10;
+    
     for (auto it : mon->GetTags())
     {
-
-        if (it == mon->GetSelectedTag())
-            XSetForeground(this->CurrentDisplay, gc, TOPBAR_SELECTED_FG);
-        else
-            XSetForeground(this->CurrentDisplay, gc, TOPBAR_FG);
-
-        XTextItem stuff[] = {
-            //{std::to_string(mon->GetClients(it->GetIndex()).size()).data(), 0 it->GetName().length(), 5, None}};
-
-            {it->GetName().data(), 4, 5, None}};
-
-        XDrawText(this->CurrentDisplay, this->root, gc, mon->GetLoc().x + (i * TAG_LENGHT), 13, stuff, 1);
-
-        i++;
+        XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x, 14, (FcChar8 *)it->GetName().c_str(), it->GetName().length());    
+        x += TAG_LENGHT + (7 * (it->GetName().length() - 3));
     }
 }
 
@@ -265,7 +268,7 @@ void grabkeys(Display *dpy, Window win)
 }
 
 void Manager::Frame(Window w, bool was_created_before_window_manager)
-{  
+{
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
@@ -357,11 +360,13 @@ void Manager::OnMapNotify(const XMapEvent &e) {}
 
 void Manager::OnUnmapNotify(const XUnmapEvent &e)
 {
+
     if (this->SelectedMonitor->FindByWindow(e.window) == NULL)
     {
         LOG(INFO) << "Ignore UnmapNotify for non-client window " << e.window;
         return;
     }
+
     if (e.event == this->root)
     {
         LOG(INFO) << "Ignore UnmapNotify for reparented pre-existing window "
@@ -526,7 +531,7 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F2")))
         {
-            start("xterm");
+            start("kitty");
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F3")))
         {
@@ -537,7 +542,8 @@ void Manager::OnKeyPress(const XKeyEvent &e)
             start("google-chrome");
         }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F5")))
-        {            
+        {
+
             std::string str = "";
 
             for (auto mon : this->Monitors)
@@ -633,7 +639,7 @@ void Manager::SelectClient(Client *client)
 void Manager::MoveSelectedClient(Monitor *mon, int index)
 {
 
-    if(!this->SelectedClient)
+    if (!this->SelectedClient)
         return;
 
     for (auto it : this->Monitors)
@@ -688,7 +694,7 @@ int Manager::Run()
     this->Config();
     this->DrawBars();
 
-    while (IsRunning)    
+    while (IsRunning)
     {
 
         XEvent e;
@@ -757,8 +763,7 @@ int Manager::Run()
         }
     }
 
-
-    XSync(this->CurrentDisplay, False);		
-	XCloseDisplay(this->CurrentDisplay);
-	return EXIT_SUCCESS;
+    XSync(this->CurrentDisplay, False);
+    XCloseDisplay(this->CurrentDisplay);
+    return EXIT_SUCCESS;
 }

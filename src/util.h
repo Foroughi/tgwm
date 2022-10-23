@@ -9,18 +9,17 @@
 #define __UTIL__
 
 #define TOP_BAR_HEIGHT 20
-#define TAG_LENGHT 30
-#define GAP 10
+#define TAG_LENGHT 35
+#define GAP 7
 #define BORDER_WIDTH 3
-#define HOTKEY Mod4Mask
+#define HOTKEY Mod1Mask
 
-#define TOPBAR_FG 0x707071
+#define TOPBAR_FG "#707070"
 #define TOPBAR_BG 0x002440
-#define TOPBAR_SELECTED_FG 0xE72264
+#define TOPBAR_SELECTED_FG "#ff00a6"
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
-
-static const char *fonts[] = {"monospace:size=10"};
+#define TOPBAR_FONT "monospace-7"
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -45,5 +44,7 @@ enum Layouts
 };
 
 void Log(std::string log);
+
+void DrawText(Display *display, Drawable drawable, int screen, std::string Color, int x, int y, char *text);
 
 #endif

@@ -6,7 +6,6 @@
 #include <vector>
 #include <unordered_map>
 #include "monitor.h"
-#include "drw.h"
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
@@ -25,8 +24,7 @@ private:
     Monitor* SelectedMonitor;
     Client *SelectedClient;
     bool IsRunning;
-    void Config();
-    Drw *draw;
+    void Config();    
 
 public:
     Manager(Display *display);

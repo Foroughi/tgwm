@@ -1,6 +1,6 @@
 #include "monitor.h"
 
-Monitor::Monitor(Display *display, int screen, std::vector<Tag *> tags) : _Display(display), Screen(screen), Tags(tags)
+Monitor::Monitor(Display *display, int screen,  Window topbar ,  std::vector<Tag *> tags) : Topbar(topbar) , _Display(display), Screen(screen), Tags(tags)
 {
 
     this->SelectedTag = this->Tags.at(0);
@@ -24,10 +24,14 @@ Loc Monitor::GetSize()
 }
 
 void Monitor::SetSize(int x, int y)
-{
-    this->Size;
+{    
     this->Size.x = x;
     this->Size.y = y;
+}
+
+Window Monitor::GetTopbar()
+{
+    return this->Topbar;
 }
 
 Loc Monitor::GetLoc()
@@ -36,8 +40,7 @@ Loc Monitor::GetLoc()
 }
 
 void Monitor::SetLoc(int x, int y)
-{
-    this->Location;
+{    
     this->Location.x = x;
     this->Location.y = y;
 }

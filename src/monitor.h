@@ -22,13 +22,13 @@ private:
     std::vector<Tag *> Tags;
     std::vector<Client *> Clients;
     Tag *SelectedTag;
-
+    Window Topbar;
 
     Display *_Display;
     int Screen;
 
 public:
-    Monitor(Display *display, int screen, std::vector<Tag *> tags);
+    Monitor(Display *display, int screen, Window topbar, std::vector<Tag *> tags);
 
     ~Monitor();
 
@@ -42,7 +42,7 @@ public:
     int GetScreen();
     Tag *GetSelectedTag();
     void SelectTagByIndex(int index);
-
+    Window GetTopbar();
     void HideClients(int tagIndex);
     void ShowClients(int tagIndex);
     void AddClient(Display *display, Window frame, Window win, int tagIndex);    

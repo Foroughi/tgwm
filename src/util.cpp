@@ -54,39 +54,53 @@ std::string ToString(const XEvent &e)
     return X_EVENT_TYPE_NAMES[e.type];
 }
 
-void
-die(const char *fmt, ...)
+void die(const char *fmt, ...)
 {
-	va_list ap;
+    va_list ap;
 
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
 
-	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
-		fputc(' ', stderr);
-		perror(NULL);
-	} else {
-		fputc('\n', stderr);
-	}
+    if (fmt[0] && fmt[strlen(fmt) - 1] == ':')
+    {
+        fputc(' ', stderr);
+        perror(NULL);
+    }
+    else
+    {
+        fputc('\n', stderr);
+    }
 
-	exit(1);
+    exit(1);
 }
 
-void * ecalloc(size_t nmemb, size_t size)
+void *ecalloc(size_t nmemb, size_t size)
 {
-	void *p;
+    void *p;
 
-	if (!(p = calloc(nmemb, size)))
-		die("calloc:");
-	return p;
+    if (!(p = calloc(nmemb, size)))
+        die("calloc:");
+    return p;
 }
 
 void Log(std::string log)
 {
-     
-  std::ofstream MyFile("./log.txt");  
-  MyFile << log;  
-  MyFile.close();
 
+    std::ofstream MyFile("./log.txt");
+    MyFile << log;
+    MyFile.close();
+}
+
+void DrawText(Display *display, Drawable drawable, int screen, std::string Color, int x, int y, char *text)
+{
+    auto font = XftFontOpenName(display, screen, "monospace-9");
+
+    auto d = XftDrawCreate(display, drawable, DefaultVisual(display, screen), DefaultColormap(display, screen));
+
+    XftColor color;
+    XftColorAllocName(display, DefaultVisual(display, screen), DefaultColormap(display, screen), Color.data(), &color);
+
+    XftDrawString8(d, &color, font, x, y, (FcChar8 *)text, 4);
+    
 }
