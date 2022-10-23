@@ -22,17 +22,17 @@ LDFLAGS  = ${LIBS}
 
 
 
-all: mywm clean
+all: tgwm clean
 
 HEADERS = $(shell find ./src -name "*.h")
 SOURCES = $(shell find ./src -name "*.cpp")
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
-mywm: $(HEADERS) $(OBJECTS)
+tgwm: $(HEADERS) $(OBJECTS)
 	$(CXX) -o out/$@ $(OBJECTS) $(LDFLAGS)
 
 .PHONY: clean
 clean:
-	rm -f mywm $(OBJECTS)
+	rm -f tgwm $(OBJECTS)
 
