@@ -102,5 +102,23 @@ void DrawText(Display *display, Drawable drawable, int screen, std::string Color
     XftColorAllocName(display, DefaultVisual(display, screen), DefaultColormap(display, screen), Color.data(), &color);
 
     XftDrawString8(d, &color, font, x, y, (FcChar8 *)text, 4);
-    
+}
+
+std::string GetTime()
+{
+
+    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    auto c = std::ctime(&time);
+
+    return std::string(c).substr(11, 6);
+}
+
+std::string GetDate()
+{
+    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    auto c = std::ctime(&time);
+
+    return std::string(c).substr(0, 11);
 }

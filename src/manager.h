@@ -1,11 +1,15 @@
-
+#include <chrono>
+#include <iostream>
+#include <future>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <glog/logging.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <X11/Xatom.h>
 #include "monitor.h"
+#include "widget.h"
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
@@ -55,6 +59,7 @@ public:
     Client * GetSelectedClient();
     void MoveSelectedClient(Monitor* mon ,int index);
     void SelectClient(Client *client);
+    void DrawWidgets();
     void SortAll();
     void onSelectedTagChanged(int Index);
 };

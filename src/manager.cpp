@@ -3,7 +3,7 @@
 void Manager::Config()
 {
 
-    // start("nitrogen --restore");
+    start("nitrogen --restore");
     start("compton");
 
     std::vector<Tag *> tags[] = {
@@ -28,7 +28,12 @@ void Manager::Config()
         for (int i = 0; i < monitorCount; i++)
         {
 
-            const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, info[i].x_org, info[i].y_org, info[i].width, TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
+            const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, info[i].x_org + GAP, info[i].y_org + GAP, info[i].width - (GAP * 2), TOP_BAR_HEIGHT - (1 * GAP), 0, TOPBAR_BG, TOPBAR_BG);
+
+            Atom atom = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_OPACITY", False);
+            uint opacity = 0xCCCCCCCCCCCCCCCCCCCD; /* 0x0 .. 0xffffffff */
+            XChangeProperty(this->CurrentDisplay, frame, atom, XA_CARDINAL, 32,
+                            PropModeReplace, (unsigned char *)&opacity, 1L);
 
             XAddToSaveSet(this->CurrentDisplay, frame);
             // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
@@ -103,6 +108,8 @@ void Manager::DrawBars()
 
         this->DrawBar(it);
     }
+
+    this->DrawWidgets();
 }
 
 GC create_gc(Display *display, Window win, int Screen)
@@ -137,9 +144,9 @@ GC create_gc(Display *display, Window win, int Screen)
 }
 
 void Manager::DrawBar(Monitor *mon)
-{        
+{
 
-    auto font = XftFontOpenName(this->CurrentDisplay,  DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
+    auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
 
     auto d = XftDrawCreate(this->CurrentDisplay, mon->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
@@ -150,11 +157,56 @@ void Manager::DrawBar(Monitor *mon)
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_SELECTED_FG, &selectedcolor);
 
     int x = 10;
-    
+
     for (auto it : mon->GetTags())
     {
-        XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x, 14, (FcChar8 *)it->GetName().c_str(), it->GetName().length());    
+        XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x, 17, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
         x += TAG_LENGHT + (7 * (it->GetName().length() - 3));
+    }
+}
+
+void Manager::DrawWidgets()
+{
+
+    // return;
+
+    std::vector<Widget *> widgets = {
+
+        new Widget("time", "#2043f3", "", [=]()
+                                 { return GetTime(); }),
+
+        new Widget("date", "#ff0090", "", [=]()
+                                 { return GetDate(); })
+
+    };
+  
+    auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
+
+    auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
+
+    XftColor bgColor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
+
+    auto width = (2 * GAP) + 10;
+    auto i = 0;
+    for (auto w : widgets)
+    {
+
+        XftColor selectedcolor;
+        XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
+
+        XGlyphInfo extents;
+        std::string val = w->GetValue();
+
+        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)val.c_str(), strlen(val.data()) - 1, &extents);
+
+        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width , 0, extents.width , TOP_BAR_HEIGHT);
+        
+        XftDrawString8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width , 18, (FcChar8 *)val.c_str(), strlen(val.data()) - 1);
+
+        width += extents.width + 10;
+
+        i++;
     }
 }
 
