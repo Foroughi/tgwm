@@ -14,7 +14,7 @@
 #define TAG_LENGHT 35
 #define GAP 7
 #define BORDER_WIDTH 3
-#define HOTKEY Mod1Mask
+#define HOTKEY Mod4Mask
 
 #define TOPBAR_FG "#A0A0A0"
 #define TOPBAR_BG 0x000000

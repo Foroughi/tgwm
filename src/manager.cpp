@@ -31,7 +31,7 @@ void Manager::Config()
             const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, info[i].x_org + GAP, info[i].y_org + GAP, info[i].width - (GAP * 2), TOP_BAR_HEIGHT - (1 * GAP), 0, TOPBAR_BG, TOPBAR_BG);
 
             Atom atom = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_OPACITY", False);
-            uint opacity = 0xCCCCCCCCCCCCCCCCCCCD; /* 0x0 .. 0xffffffff */
+            uint opacity = 0xCCCCCCCCCCCCCCCCCCCD;
             XChangeProperty(this->CurrentDisplay, frame, atom, XA_CARDINAL, 32,
                             PropModeReplace, (unsigned char *)&opacity, 1L);
 
@@ -173,13 +173,13 @@ void Manager::DrawWidgets()
     std::vector<Widget *> widgets = {
 
         new Widget("time", "#2043f3", "", [=]()
-                                 { return GetTime(); }),
+                   { return GetTime(); }),
 
         new Widget("date", "#ff0090", "", [=]()
-                                 { return GetDate(); })
+                   { return GetDate(); })
 
     };
-  
+
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
 
     auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
@@ -200,9 +200,9 @@ void Manager::DrawWidgets()
 
         XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)val.c_str(), strlen(val.data()) - 1, &extents);
 
-        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width , 0, extents.width , TOP_BAR_HEIGHT);
-        
-        XftDrawString8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width , 18, (FcChar8 *)val.c_str(), strlen(val.data()) - 1);
+        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width, 0, extents.width, TOP_BAR_HEIGHT);
+
+        XftDrawString8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width, 18, (FcChar8 *)val.c_str(), strlen(val.data()) - 1);
 
         width += extents.width + 10;
 
@@ -257,19 +257,7 @@ void grabkeys(Display *dpy, Window win)
     {
         auto h = HOTKEY | modifiers[i];
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F1), h, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F2), h, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F3), h, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F5), h, win,
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
@@ -315,6 +303,12 @@ void grabkeys(Display *dpy, Window win)
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_grave), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Pause), h, win,
                  True, GrabModeAsync, GrabModeAsync);
     }
 }
@@ -506,11 +500,7 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
     if (e.state & HOTKEY)
     {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F1")))
-        {
-            IsRunning = False;
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
         {
             if (e.state & ControlMask)
             {
@@ -581,50 +571,43 @@ void Manager::OnKeyPress(const XKeyEvent &e)
                 this->Monitors[1]->SelectTagByIndex(1);
         }
 
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F2")))
-        {
-            start("kitty");
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F3")))
-        {
-            start("code");
-        }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
         {
-            start("google-chrome");
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F5")))
-        {
 
-            std::string str = "";
-
-            for (auto mon : this->Monitors)
-            {
-                str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
-
-                str += "Tags :\n";
-                for (auto it : mon->GetTags())
-                {
-                    str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
-                }
-
-                str += "\nClients :\n";
-                for (auto it : mon->GetClients(-1))
-                {
-                    str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
-                }
-            }
-
-            Log(str);
-        }
-
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("x")))
-        {
             if (this->GetSelectedClient())
             {
                 this->SelectedMonitor->RemoveClient(this->GetSelectedClient());
                 this->SelectedMonitor->Sort();
             }
+            // std::string str = "";
+
+            // for (auto mon : this->Monitors)
+            // {
+            //     str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
+
+            //     str += "Tags :\n";
+            //     for (auto it : mon->GetTags())
+            //     {
+            //         str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
+            //     }
+
+            //     str += "\nClients :\n";
+            //     for (auto it : mon->GetClients(-1))
+            //     {
+            //         str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
+            //     }
+            // }
+
+            // Log(str);
+        }
+
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("grave")))
+        {
+            start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Pause")))
+        {
+            start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
         }
     }
 }
