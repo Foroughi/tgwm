@@ -156,6 +156,11 @@ void Manager::DrawBar(Monitor *mon)
     XftColor selectedcolor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_SELECTED_FG, &selectedcolor);
 
+    XftColor bgColor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
+
+    XftDrawRect(d, &bgColor, 0, 0, 300, TOP_BAR_HEIGHT);
+
     int x = 10;
 
     for (auto it : mon->GetTags())
@@ -717,31 +722,7 @@ int Manager::Run()
     grabkeys(this->CurrentDisplay, this->root);
 
     XSetErrorHandler(OnXError);
-    // XGrabServer(this->CurrentDisplay);
-
-    // Window returned_root, returned_parent;
-    // Window *top_level_windows;
-    // unsigned int num_top_level_windows;
-    // CHECK(XQueryTree(
-    //     this->CurrentDisplay,
-    //     this->root,
-    //     &returned_root,
-    //     &returned_parent,
-    //     &top_level_windows,
-    //     &num_top_level_windows));
-    // CHECK_EQ(returned_root, this->root);
-
-    // for (unsigned int i = 0; i < num_top_level_windows; ++i)
-    // {
-    //     Frame(top_level_windows[i], true);
-    // }
-
-    // XFree(top_level_windows);
-
-    // XUngrabServer(this->CurrentDisplay);
-
-    // XGrabKey(this->CurrentDisplay, XKeysymToKeycode(this->CurrentDisplay, XK_F1), HOTKEY, this->root, True, GrabModeAsync, GrabModeAsync);
-
+    
     this->Config();
     this->DrawBars();
 
