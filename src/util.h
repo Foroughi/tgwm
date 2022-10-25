@@ -6,7 +6,7 @@
 #include <X11/cursorfont.h>
 #include <fstream>
 #include <chrono>
-#include <ctime>   
+#include <ctime>
 
 #ifndef __UTIL__
 #define __UTIL__
@@ -24,7 +24,6 @@
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
 #define TOPBAR_FONT "monospace-7"
 #define ICON_FONT "Font Awesome 6 Free-7"
-
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -48,13 +47,23 @@ enum Layouts
 	Layouts_Vertical
 };
 
-enum { CurNormal, CurResize, CurMove, CurLast };
+
+std::vector<Layouts> GetDefaultLayouts();
+
+enum
+{
+	CurNormal,
+	CurResize,
+	CurMove,
+	CurLast
+};
 
 void Log(std::string log);
 
 void DrawText(Display *display, Drawable drawable, int screen, std::string Color, int x, int y, char *text);
 
 std::string GetTime();
+
 std::string GetDate();
 
 #endif

@@ -53,7 +53,7 @@ public:
     Client *FindByWinOrFrame(Window win);
     void MoveSelectedClient(int index);
     void AddClient(Client * c);
-
+    void SetLayout(Layouts layout);
 
     std::function<void(int)> OnSelectedTagChanged = NULL;
 };

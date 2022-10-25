@@ -122,3 +122,12 @@ std::string GetDate()
 
     return std::string(c).substr(0, 11);
 }
+
+
+std::vector<Layouts> GetDefaultLayouts()
+{
+    return {        
+        Layouts_Vertical,
+        Layouts_Horizontal,
+    };
+}

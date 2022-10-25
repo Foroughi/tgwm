@@ -109,7 +109,7 @@ void Monitor::Sort()
 
     int i = 0;
 
-    if (this->Size.x > this->Size.y)
+    if (this->_Layout == Layouts_Vertical)
     {
 
         int w = this->GetSize().x / cNum;
@@ -122,7 +122,7 @@ void Monitor::Sort()
             i++;
         }
     }
-    else
+    else if (this->_Layout == Layouts_Horizontal)
     {
         int w = this->GetSize().x;
         int y = (this->GetSize().y - TOP_BAR_HEIGHT) / cNum;
@@ -146,6 +146,11 @@ void Monitor::AddClient(Client *c)
 {
     c->ChangeMonitor(this->GetLoc());
     this->Clients.push_back(c);
+}
+
+void Monitor::SetLayout(Layouts layout)
+{
+    this->_Layout = layout;
 }
 
 void Monitor::RemoveClient(Client *client)

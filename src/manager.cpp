@@ -3,6 +3,8 @@
 void Manager::Config()
 {
 
+    std::vector<Layouts> DefaultLayouts = GetDefaultLayouts();
+
     start("nitrogen --restore");
     start("compton");
 
@@ -51,6 +53,8 @@ void Manager::Config()
                 this->DrawBars();
             };
 
+
+            mon->SetLayout(DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
         }
 
