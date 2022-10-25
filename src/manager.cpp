@@ -92,7 +92,7 @@ void Manager::onSelectedTagChanged(int Index)
 
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
-    this->IsRunning = True;
+    this->IsRunning = True;  
 }
 
 Manager::~Manager()
@@ -168,11 +168,9 @@ void Manager::DrawBar(Monitor *mon)
 void Manager::DrawWidgets()
 {
 
-    // return;
-
     std::vector<Widget *> widgets = {
 
-        new Widget("time", "#2043f3", "", [=]()
+        new Widget(" time", "#2043f3", "", [=]()
                    { return GetTime(); }),
 
         new Widget("date", "#ff0090", "", [=]()
@@ -182,13 +180,19 @@ void Manager::DrawWidgets()
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
 
+    auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
+
+    if (iconfont && iconfont->height)
+    {
+    }
+
     auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
     XftColor bgColor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
     auto width = (2 * GAP) + 10;
-    auto i = 0;
+
     for (auto w : widgets)
     {
 
@@ -203,10 +207,9 @@ void Manager::DrawWidgets()
         XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width, 0, extents.width, TOP_BAR_HEIGHT);
 
         XftDrawString8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width, 18, (FcChar8 *)val.c_str(), strlen(val.data()) - 1);
+        // XftDrawString8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width, 18, (FcChar8 *)ICON_MAX_FA, 1);
 
         width += extents.width + 10;
-
-        i++;
     }
 }
 
@@ -258,6 +261,9 @@ void grabkeys(Display *dpy, Window win)
         auto h = HOTKEY | modifiers[i];
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
         XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
@@ -574,7 +580,11 @@ void Manager::OnKeyPress(const XKeyEvent &e)
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
         {
 
-            if (this->GetSelectedClient())
+            if (e.state & ControlMask)
+            {
+                this->IsRunning = false;
+            }
+            else if (this->GetSelectedClient())
             {
                 this->SelectedMonitor->RemoveClient(this->GetSelectedClient());
                 this->SelectedMonitor->Sort();
@@ -691,10 +701,16 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
 int Manager::Run()
 {
 
+    XSetWindowAttributes wa;
+
+    wa.cursor = XCreateFontCursor(this->CurrentDisplay, XC_left_ptr);
+    wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
+    XChangeWindowAttributes(this->CurrentDisplay, this->root, CWEventMask | CWCursor, &wa);
+    
     XSelectInput(
         this->CurrentDisplay,
         this->root,
-        SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask);
+        wa.event_mask);
 
     XSync(this->CurrentDisplay, false);
 

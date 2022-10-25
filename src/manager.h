@@ -10,6 +10,8 @@
 #include <X11/Xatom.h>
 #include "monitor.h"
 #include "widget.h"
+#include <X11/cursorfont.h>
+#include "fontawesome.h"
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
@@ -28,7 +30,7 @@ private:
     Monitor* SelectedMonitor;
     Client *SelectedClient;
     bool IsRunning;
-    void Config();    
+    void Config();     
 
 public:
     Manager(Display *display);

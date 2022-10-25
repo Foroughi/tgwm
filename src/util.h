@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 #include <X11/Xlib.h>
 #include <X11/Xft/Xft.h>
+#include <X11/cursorfont.h>
 #include <fstream>
 #include <chrono>
 #include <ctime>   
@@ -22,6 +23,8 @@
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
 #define TOPBAR_FONT "monospace-7"
+#define ICON_FONT "Font Awesome 6 Free-7"
+
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -44,6 +47,8 @@ enum Layouts
 	Layouts_Horizontal,
 	Layouts_Vertical
 };
+
+enum { CurNormal, CurResize, CurMove, CurLast };
 
 void Log(std::string log);
 
