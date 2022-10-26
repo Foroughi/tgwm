@@ -10,6 +10,23 @@ void start(char *what)
     }
 }
 
+std::string exec(const char *cmd)
+{
+
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe)
+    {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    {
+        result += buffer.data();
+    }
+    return result;
+}
+
 std::string ToString(const XEvent &e)
 {
     static const char *const X_EVENT_TYPE_NAMES[] = {
@@ -141,9 +158,9 @@ std::vector<std::string> GetStatusbarColor()
         "#B8BB26",
         "#d19a66",
         "#D3869B",
-        "#98c379",        
-        "#c8c874",        
-        "#83A598",                
+        "#98c379",
+        "#c8c874",
+        "#83A598",
         "#3d4059",
     };
 }

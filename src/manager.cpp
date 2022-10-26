@@ -185,7 +185,7 @@ void Manager::DrawBar(Monitor *mon)
             XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, iconfont, x, 18, (const FcChar8 *)ICON_FA_COMPUTER, 3);
             w = TAGGAP * 2 + 15;
         }
-        
+
         if (it == mon->GetSelectedTag())
             XftDrawRect(d, &selectedcolor, x, 23, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, 3);
 
@@ -198,18 +198,56 @@ std::vector<Widget *> GetWidgets()
     auto colors = GetStatusbarColor();
     auto i = 0;
     return {
-        new Widget("time", colors[i++], ICON_FA_CLOCK, []()
-                   { return GetTime(); }),
-        new Widget("date", colors[i++], ICON_FA_CALENDAR, []()
-                   { return GetDate(); }),
-        new Widget("volumn", colors[i++], ICON_FA_VOLUME_HIGH, []()
-                   { return ""; }),
-        new Widget("network", colors[i++], ICON_FA_WIFI, []()
-                   { return ""; }),
-        new Widget("cpu", colors[i++], ICON_FA_MICROCHIP, []()
-                   { return "34%"; }),
-        new Widget("memory", colors[i++], ICON_FA_MEMORY, []()
-                   { return "22%"; })
+        new Widget(
+            "time", colors[i++], ICON_FA_CLOCK,
+            [](Widget *w)
+            {
+                return GetTime();
+            },
+            [](int button) {}),
+        new Widget(
+            "date", colors[i++], ICON_FA_CALENDAR,
+            [](Widget *w)
+            { return GetDate(); },
+            [](int button) {}),
+        new Widget(
+            "volumn", colors[i++], ICON_FA_VOLUME_HIGH,
+            [](Widget *w)
+            {
+                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
+
+                volumn = volumn.substr(0, volumn.length() - 2);
+
+                int volumnInt = std::stoi(volumn);
+                
+                if (volumnInt < 30)
+                    w->SetIcon(ICON_FA_VOLUME_OFF);
+                else if (volumnInt >= 30 && volumnInt < 60)
+                    w->SetIcon(ICON_FA_VOLUME_LOW);
+                if (volumnInt >= 60)
+                    w->SetIcon(ICON_FA_VOLUME_HIGH);
+
+                return "";
+            },
+            [](int button)
+            {
+                start("pavucontrol");
+            }),
+        new Widget(
+            "network", colors[i++], ICON_FA_WIFI,
+            [](Widget *w)
+            { return ""; },
+            [](int button) {}),
+        new Widget(
+            "cpu", colors[i++], ICON_FA_MICROCHIP,
+            [](Widget *w)
+            { return "34%"; },
+            [](int button) {}),
+        new Widget(
+            "memory", colors[i++], ICON_FA_MEMORY,
+            [](Widget *w)
+            { return "22%"; },
+            [](int button) {})
 
     };
 }
@@ -241,7 +279,9 @@ void Manager::DrawWidgets()
         XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
-        XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
+        
+        if(strlen(w->GetValue().data()) > 0)
+            XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
         XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
 

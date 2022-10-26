@@ -1,6 +1,6 @@
 #include "widget.h"
 
-Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(void)> updateFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction)
+Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int)> clickFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction), OnClick(clickFunction)
 {
 }
 
@@ -23,6 +23,11 @@ std::string Widget::GetIcon()
     return this->Icon;
 }
 
+void Widget::SetIcon(std::string icon)
+{
+    this->Icon = icon;
+}
+
 int Widget::GetInterval()
 {
     return this->Interval;
@@ -35,5 +40,11 @@ std::string Widget::Update()
 
 std::string Widget::GetValue()
 {
-    return this->OnUpdate();
+    
+    return this->OnUpdate(this);
+}
+
+void Widget::Click(int button)
+{
+    this->OnClick(button);
 }

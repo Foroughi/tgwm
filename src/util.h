@@ -7,6 +7,12 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 
 #ifndef __UTIL__
 #define __UTIL__
@@ -36,6 +42,7 @@ struct Loc
 };
 
 void start(char *what);
+std::string exec(const char* cmd);
 std::string ToString(const XEvent &e);
 
 void die(const char *fmt, ...);
