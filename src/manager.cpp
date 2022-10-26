@@ -219,7 +219,7 @@ std::vector<Widget *> GetWidgets()
                 volumn = volumn.substr(0, volumn.length() - 2);
 
                 int volumnInt = std::stoi(volumn);
-                
+
                 if (volumnInt < 30)
                     w->SetIcon(ICON_FA_VOLUME_OFF);
                 else if (volumnInt >= 30 && volumnInt < 60)
@@ -246,7 +246,11 @@ std::vector<Widget *> GetWidgets()
         new Widget(
             "memory", colors[i++], ICON_FA_MEMORY,
             [](Widget *w)
-            { return "22%"; },
+            { 
+                std::string memory = exec("free -h | grep Mem:");
+
+                return memory.substr(16, 2) + "/" + memory.substr(27, 6); 
+            },
             [](int button) {})
 
     };
@@ -279,8 +283,8 @@ void Manager::DrawWidgets()
         XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
-        
-        if(strlen(w->GetValue().data()) > 0)
+
+        if (strlen(w->GetValue().data()) > 0)
             XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
         XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
@@ -338,63 +342,72 @@ void grabkeys(Display *dpy, Window win)
     XUngrabKey(dpy, AnyKey, AnyModifier, win);
     for (int i = 0; i < 4; i++)
     {
-        auto h = HOTKEY | modifiers[i];
+        auto m = modifiers[i];
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_grave), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_grave), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Pause), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Pause), HOTKEY | m, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
     }
 }
@@ -563,20 +576,6 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
 
 void Manager::OnMouseLeave(const XCrossingEvent &e)
 {
-
-    // if (e.window != this->root)
-    // {
-    //     Client* c = this->FindClientByWin(e.window);
-
-    //     if(c)
-    //     {
-
-    //         c->
-
-    //     }
-
-    //     return;
-    // }
 }
 
 void Manager::OnKeyPress(const XKeyEvent &e)
@@ -698,6 +697,16 @@ void Manager::OnKeyPress(const XKeyEvent &e)
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Pause")))
         {
             start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+        }
+    }
+    else
+    {
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Print")))
+        {
+            if (e.state & ControlMask)
+                start("scrot -m -e 'mv $f /home/ali/Pictures/'");
+            else
+                start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
         }
     }
 }
