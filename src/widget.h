@@ -23,7 +23,7 @@ public:
     void SetIcon(std::string icon);
     std::string GetIcon();
     int GetInterval();
-    std::string Update();
+    void Update();
     std::string GetValue();
     void Click(int button);
     std::function<std::string(Widget *)> OnUpdate;

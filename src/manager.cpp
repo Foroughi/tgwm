@@ -93,9 +93,77 @@ void Manager::onSelectedTagChanged(int Index)
 {
 }
 
+std::vector<Widget *> GetWidgetsConfig()
+{
+    auto colors = GetStatusbarColor();
+    auto i = 0;
+    return {
+        new Widget(
+            "time", colors[i++], ICON_FA_CLOCK,
+            [](Widget *w)
+            {
+                return GetTime();
+            },
+            [](int button) {}),
+        new Widget(
+            "date", colors[i++], ICON_FA_CALENDAR,
+            [](Widget *w)
+            { return GetDate(); },
+            [](int button) {}),
+        new Widget(
+            "volumn", colors[i++], ICON_FA_VOLUME_HIGH,
+            [](Widget *w)
+            {
+                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
+
+                volumn = volumn.substr(0, volumn.length() - 2);
+
+                int volumnInt = std::stoi(volumn);
+
+                if (volumnInt < 30)
+                    w->SetIcon(ICON_FA_VOLUME_OFF);
+                else if (volumnInt >= 30 && volumnInt < 60)
+                    w->SetIcon(ICON_FA_VOLUME_LOW);
+                if (volumnInt >= 60)
+                    w->SetIcon(ICON_FA_VOLUME_HIGH);
+
+                return "";
+            },
+            [](int button)
+            {
+                start("pavucontrol");
+            }),
+        new Widget(
+            "network", colors[i++], ICON_FA_WIFI,
+            [](Widget *w)
+            { return ""; },
+            [](int button) {}),
+        new Widget(
+            "cpu", colors[i++], ICON_FA_MICROCHIP,
+            [](Widget *w)
+            {
+                return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0 ,1 ) + "%";
+            },
+
+            [](int button) {}),
+        new Widget(
+            "memory", colors[i++], ICON_FA_MEMORY,
+            [](Widget *w)
+            {
+                std::string memory = exec("free -h | grep Mem:");
+
+                return memory.substr(16, 2) + "/" + memory.substr(27, 6);
+            },
+            [](int button) {})
+
+    };
+}
+
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
     this->IsRunning = True;
+
+    this->Widgets = GetWidgetsConfig();
 }
 
 Manager::~Manager()
@@ -112,7 +180,7 @@ void Manager::DrawBars()
         this->DrawBar(it);
     }
 
-    this->DrawWidgets();
+    this->UpdateWidgets();
 }
 
 GC create_gc(Display *display, Window win, int Screen)
@@ -193,67 +261,31 @@ void Manager::DrawBar(Monitor *mon)
     }
 }
 
-std::vector<Widget *> GetWidgets()
+void Manager::UpdateWidgets()
 {
-    auto colors = GetStatusbarColor();
-    auto i = 0;
-    return {
-        new Widget(
-            "time", colors[i++], ICON_FA_CLOCK,
-            [](Widget *w)
-            {
-                return GetTime();
-            },
-            [](int button) {}),
-        new Widget(
-            "date", colors[i++], ICON_FA_CALENDAR,
-            [](Widget *w)
-            { return GetDate(); },
-            [](int button) {}),
-        new Widget(
-            "volumn", colors[i++], ICON_FA_VOLUME_HIGH,
-            [](Widget *w)
-            {
-                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
+    if (this->IsUpdatingWidgets)
+        return;
 
-                volumn = volumn.substr(0, volumn.length() - 2);
+    std::async(std::launch::async, [&]()
+               { 
+        
+        this->IsUpdatingWidgets = True;
+        
+        for(auto it : this->Widgets)            
+        {
+            it->Update();
 
-                int volumnInt = std::stoi(volumn);
+            //std::this_thread::sleep_for(std::chrono::seconds(3));     
+        }
 
-                if (volumnInt < 30)
-                    w->SetIcon(ICON_FA_VOLUME_OFF);
-                else if (volumnInt >= 30 && volumnInt < 60)
-                    w->SetIcon(ICON_FA_VOLUME_LOW);
-                if (volumnInt >= 60)
-                    w->SetIcon(ICON_FA_VOLUME_HIGH);
+                   
+        //std::this_thread::sleep_for(std::chrono::seconds(5));     
 
-                return "";
-            },
-            [](int button)
-            {
-                start("pavucontrol");
-            }),
-        new Widget(
-            "network", colors[i++], ICON_FA_WIFI,
-            [](Widget *w)
-            { return ""; },
-            [](int button) {}),
-        new Widget(
-            "cpu", colors[i++], ICON_FA_MICROCHIP,
-            [](Widget *w)
-            { return "34%"; },
-            [](int button) {}),
-        new Widget(
-            "memory", colors[i++], ICON_FA_MEMORY,
-            [](Widget *w)
-            { 
-                std::string memory = exec("free -h | grep Mem:");
+        this->DrawWidgets(); 
 
-                return memory.substr(16, 2) + "/" + memory.substr(27, 6); 
-            },
-            [](int button) {})
+        this->IsUpdatingWidgets = False;
 
-    };
+    });
 }
 
 void Manager::DrawWidgets()
@@ -261,17 +293,17 @@ void Manager::DrawWidgets()
 
     auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
-    std::vector<Widget *> widgets = GetWidgets();
-
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
 
     XftColor bgColor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
+    XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0,  this->Monitors[0]->GetSize().x - GAP , TOP_BAR_HEIGHT);
+
     auto width = (2 * GAP) + 20;
 
-    for (auto w : widgets)
+    for (auto w : this->Widgets)
     {
 
         XftColor selectedcolor;
@@ -280,7 +312,7 @@ void Manager::DrawWidgets()
         XGlyphInfo extents;
         XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
 
-        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+        //XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
@@ -295,6 +327,9 @@ void Manager::DrawWidgets()
     }
 
     XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &bgColor);
+
+
+    
 }
 
 void Manager::Unframe(Window w)

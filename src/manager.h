@@ -31,10 +31,14 @@ private:
     Client *SelectedClient;
     bool IsRunning;
     void Config();     
+    std::vector<Widget*> Widgets = {};
+    bool IsUpdatingWidgets = False;
 
 public:
     Manager(Display *display);
     ~Manager();
+
+
     void DrawBars();
     void DrawBar(Monitor *mon);
     void Unframe(Window w);
@@ -62,8 +66,10 @@ public:
     void MoveSelectedClient(Monitor* mon ,int index);
     void SelectClient(Client *client);
     void DrawWidgets();
+    void UpdateWidgets();
     void SortAll();
-    void onSelectedTagChanged(int Index);
+    void onSelectedTagChanged(int Index);    
+
 };
 
 #endif

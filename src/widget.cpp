@@ -33,15 +33,14 @@ int Widget::GetInterval()
     return this->Interval;
 }
 
-std::string Widget::Update()
+void Widget::Update()
 {
-    return this->Value;
+    this->Value = this->OnUpdate(this);
 }
 
 std::string Widget::GetValue()
-{
-    
-    return this->OnUpdate(this);
+{    
+    return this->Value;
 }
 
 void Widget::Click(int button)
