@@ -55,7 +55,10 @@
         "fstream": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "future": "cpp",
+        "iostream": "cpp",
+        "stop_token": "cpp"
     },
     "makefile.launchConfigurations": [
         {

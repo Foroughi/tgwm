@@ -111,7 +111,7 @@ std::string GetTime()
 
     auto c = std::ctime(&time);
 
-    return std::string(c).substr(11, 6);
+    return std::string(c).substr(11, 5);
 }
 
 std::string GetDate()
@@ -123,11 +123,27 @@ std::string GetDate()
     return std::string(c).substr(0, 11);
 }
 
-
 std::vector<Layouts> GetDefaultLayouts()
 {
-    return {        
+    return {
         Layouts_Vertical,
         Layouts_Horizontal,
+    };
+}
+
+std::vector<std::string> GetStatusbarColor()
+{
+    return {
+        "#D04232",
+        "#61afef",
+        "#FFC12F",
+        "#c678dd",
+        "#B8BB26",
+        "#d19a66",
+        "#D3869B",
+        "#98c379",        
+        "#c8c874",        
+        "#83A598",                
+        "#3d4059",
     };
 }

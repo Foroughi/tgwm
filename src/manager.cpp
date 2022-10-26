@@ -9,13 +9,13 @@ void Manager::Config()
     start("compton");
 
     std::vector<Tag *> tags[] = {
-        {new Tag(0, "sys"),
-         new Tag(1, "dev"),
-         new Tag(2, "www"),
-         new Tag(3, "term"),
-         new Tag(4, "misc")},
-        {new Tag(0, "www"),
-         new Tag(1, "misc")}};
+        {new Tag(0, "", ICON_FA_COMPUTER),
+         new Tag(1, "dev", ""),
+         new Tag(2, "www", ""),
+         new Tag(3, "term", ""),
+         new Tag(4, "misc", "")},
+        {new Tag(0, "www", ""),
+         new Tag(1, "misc", "")}};
 
 #ifdef XINERAMA
 
@@ -52,7 +52,6 @@ void Manager::Config()
                 this->SortAll();
                 this->DrawBars();
             };
-
 
             mon->SetLayout(DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
@@ -96,7 +95,7 @@ void Manager::onSelectedTagChanged(int Index)
 
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
-    this->IsRunning = True;  
+    this->IsRunning = True;
 }
 
 Manager::~Manager()
@@ -150,7 +149,11 @@ GC create_gc(Display *display, Window win, int Screen)
 void Manager::DrawBar(Monitor *mon)
 {
 
+    XftColor color;
+
+    /* Xft. */
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
+    auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
 
     auto d = XftDrawCreate(this->CurrentDisplay, mon->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
@@ -166,41 +169,65 @@ void Manager::DrawBar(Monitor *mon)
     XftDrawRect(d, &bgColor, 0, 0, 300, TOP_BAR_HEIGHT);
 
     int x = 10;
-
+    int w = 0;
     for (auto it : mon->GetTags())
     {
-        XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x, 17, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
-        x += TAG_LENGHT + (7 * (it->GetName().length() - 3));
+        XGlyphInfo extents;
+        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)it->GetName().data(), it->GetName().length(), &extents);
+
+        if (it->GetName().length() > 0)
+        {
+            XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+            w = TAGGAP * 2 + extents.width;
+        }
+        else
+        {
+            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, iconfont, x, 18, (const FcChar8 *)ICON_FA_COMPUTER, 3);
+            w = TAGGAP * 2 + 15;
+        }
+        
+        if (it == mon->GetSelectedTag())
+            XftDrawRect(d, &selectedcolor, x, 23, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, 3);
+
+        x += w;
     }
+}
+
+std::vector<Widget *> GetWidgets()
+{
+    auto colors = GetStatusbarColor();
+    auto i = 0;
+    return {
+        new Widget("time", colors[i++], ICON_FA_CLOCK, []()
+                   { return GetTime(); }),
+        new Widget("date", colors[i++], ICON_FA_CALENDAR, []()
+                   { return GetDate(); }),
+        new Widget("volumn", colors[i++], ICON_FA_VOLUME_HIGH, []()
+                   { return ""; }),
+        new Widget("network", colors[i++], ICON_FA_WIFI, []()
+                   { return ""; }),
+        new Widget("cpu", colors[i++], ICON_FA_MICROCHIP, []()
+                   { return "34%"; }),
+        new Widget("memory", colors[i++], ICON_FA_MEMORY, []()
+                   { return "22%"; })
+
+    };
 }
 
 void Manager::DrawWidgets()
 {
 
-    std::vector<Widget *> widgets = {
+    auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
-        new Widget(" time", "#2043f3", "", [=]()
-                   { return GetTime(); }),
-
-        new Widget("date", "#ff0090", "", [=]()
-                   { return GetDate(); })
-
-    };
+    std::vector<Widget *> widgets = GetWidgets();
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
-
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
-
-    if (iconfont && iconfont->height)
-    {
-    }
-
-    auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
     XftColor bgColor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
-    auto width = (2 * GAP) + 10;
+    auto width = (2 * GAP) + 20;
 
     for (auto w : widgets)
     {
@@ -209,17 +236,21 @@ void Manager::DrawWidgets()
         XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
         XGlyphInfo extents;
-        std::string val = w->GetValue();
+        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
 
-        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)val.c_str(), strlen(val.data()) - 1, &extents);
+        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
-        XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width, 0, extents.width, TOP_BAR_HEIGHT);
+        XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
+        XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
-        XftDrawString8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width, 18, (FcChar8 *)val.c_str(), strlen(val.data()) - 1);
-        // XftDrawString8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width, 18, (FcChar8 *)ICON_MAX_FA, 1);
+        XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
 
-        width += extents.width + 10;
+        width += extents.width + 27;
+
+        XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
     }
+
+    XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &bgColor);
 }
 
 void Manager::Unframe(Window w)
@@ -715,7 +746,7 @@ int Manager::Run()
     wa.cursor = XCreateFontCursor(this->CurrentDisplay, XC_left_ptr);
     wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
     XChangeWindowAttributes(this->CurrentDisplay, this->root, CWEventMask | CWCursor, &wa);
-    
+
     XSelectInput(
         this->CurrentDisplay,
         this->root,
@@ -726,7 +757,7 @@ int Manager::Run()
     grabkeys(this->CurrentDisplay, this->root);
 
     XSetErrorHandler(OnXError);
-    
+
     this->Config();
     this->DrawBars();
 

@@ -12,18 +12,18 @@
 #define __UTIL__
 
 #define TOP_BAR_HEIGHT 33
-#define TAG_LENGHT 35
 #define GAP 7
+#define TAGGAP 5
 #define BORDER_WIDTH 3
 #define HOTKEY Mod4Mask
 
 #define TOPBAR_FG "#A0A0A0"
 #define TOPBAR_BG 0x000000
-#define TOPBAR_SELECTED_FG "#ff00a6"
+#define TOPBAR_SELECTED_FG "#61afef"
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
-#define TOPBAR_FONT "monospace-7"
-#define ICON_FONT "Font Awesome 6 Free-7"
+#define TOPBAR_FONT "monospace-7:style=Bold"
+#define ICON_FONT "Font Awesome 6 Free:size=7:style=Solid"
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -65,5 +65,8 @@ void DrawText(Display *display, Drawable drawable, int screen, std::string Color
 std::string GetTime();
 
 std::string GetDate();
+
+
+std::vector<std::string> GetStatusbarColor();
 
 #endif

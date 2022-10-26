@@ -14,8 +14,7 @@ private:
     Window Frame;
     bool IsHidden = False;
     Display *_Display;
-    Loc MonitorLoc;
-    Loc PreLocation;
+    Loc MonitorLoc;   
     int TagIndex;
 
 public:

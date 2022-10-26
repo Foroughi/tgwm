@@ -18,16 +18,22 @@ void Client::Show()
 
     this->IsHidden = False;
 
-    //this->SetLocation(this->PreLocation.x, this->PreLocation.y);
+    auto h = this->GetSize().y;
+
+    XMoveWindow(this->_Display, this->Frame, 0, h);
+    XMoveWindow(this->_Display, this->Win, 0, 0);
 }
 void Client::Hide()
 {
     this->IsHidden = True;
 
-    auto width = this->GetSize().x;
+    auto h = this->GetSize().y;
 
-    //this->PreLocation = this->GetLocation();
-    this->SetLocation(width * -4, 0);
+    // this->PreLocation = this->GetLocation();
+    // this->SetLocation(width * -4, 0);
+
+    XMoveWindow(this->_Display, this->Frame, 0, h * (-1));
+    XMoveWindow(this->_Display, this->Win, 0, 0);
 }
 
 bool Client::GetVisibilityStatus()
@@ -71,7 +77,7 @@ Loc Client::GetLocation()
 void Client::SetLocation(int x, int y)
 {
 
-    XMoveWindow(this->_Display, this->Frame, x,  y);
+    XMoveWindow(this->_Display, this->Frame, x, y);
     XMoveWindow(this->_Display, this->Win, 0, 0);
 }
 
