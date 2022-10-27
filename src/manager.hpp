@@ -1,24 +1,10 @@
-#include <chrono>
-#include <iostream>
-#include <future>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <glog/logging.h>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <X11/Xatom.h>
-#include "monitor.hpp"
-#include "widget.hpp"
-#include "config.hpp"
-#include <X11/cursorfont.h>
-
-#ifdef XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif /* XINERAMA */
-
 #ifndef __MANAGER__
 #define __MANAGER__
+
+#include <X11/Xlib.h>
+#include <vector>
+#include "monitor.hpp"
+#include "widget.hpp"
 
 class Manager
 {
@@ -57,6 +43,9 @@ public:
     void OnKeyPress(const XKeyEvent &e);
     void OnMouseEnter(const XCrossingEvent &e);
     void OnMouseLeave(const XCrossingEvent &e);
+    Monitor* GetSelectedMonitor();
+    Monitor* GetMonitor(int index);
+    void Stop();
     int Run();
     Client * FindClientByWin(Window w);
     Monitor* FindMonitorByClient(Client* client);

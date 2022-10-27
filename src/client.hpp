@@ -1,13 +1,9 @@
 
+#ifndef __CLIENT__
+#define __CLIENT__
 
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <vector>
-#include <unordered_map>
 #include "util.hpp"
-
-#include "config.hpp"
-
 
 class Client
 {
@@ -43,3 +39,5 @@ public:
 
     void ChangeMonitor(Loc monitorLoc);
 };
+
+#endif

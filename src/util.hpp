@@ -1,21 +1,9 @@
-#include <X11/Xutil.h>
-#include <unordered_map>
-#include <glog/logging.h>
-#include <X11/Xlib.h>
-#include <X11/Xft/Xft.h>
-#include <X11/cursorfont.h>
-#include <fstream>
-#include <chrono>
-#include <ctime>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <array>
-
 #ifndef __UTIL__
 #define __UTIL__
+
+#include <X11/Xlib.h>
+#include <string>
+
 
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))

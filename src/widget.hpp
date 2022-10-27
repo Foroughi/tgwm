@@ -1,9 +1,10 @@
-#include <list>
-#include <string>
-#include <functional>
 
 #ifndef __WIDGET__
 #define __WIDGET__
+
+#include <list>
+#include <string>
+#include <functional>
 
 class Widget
 {

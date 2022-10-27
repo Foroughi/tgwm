@@ -1,5 +1,11 @@
 #include "client.hpp"
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <vector>
+#include "util.hpp"
+#include "config.hpp"
+
 Client::Client(Display *display, Loc monitorLoc, Window frame, Window window, int tagIndex) : MonitorLoc(monitorLoc), Frame(frame), Win(window), _Display(display), TagIndex(tagIndex) {}
 Client::~Client() {}
 

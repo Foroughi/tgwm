@@ -1,4 +1,6 @@
 #include "monitor.hpp"
+#include <X11/Xutil.h>
+#include "config.hpp"
 
 Monitor::Monitor(Display *display, int screen, Window topbar, std::vector<Tag *> tags) : Topbar(topbar), _Display(display), Screen(screen), Tags(tags)
 {
@@ -152,6 +154,7 @@ void Monitor::SetLayout(Layouts layout)
 {
     this->_Layout = layout;
 }
+
 
 void Monitor::RemoveClient(Client *client)
 {

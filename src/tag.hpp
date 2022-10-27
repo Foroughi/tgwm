@@ -1,8 +1,8 @@
-#include <list>
-#include <string>
-
 #ifndef __TAG__
 #define __TAG__
+
+
+#include <string>
 
 class Tag
 {

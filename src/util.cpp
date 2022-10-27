@@ -1,5 +1,21 @@
 #include "util.hpp"
 
+#include <X11/Xutil.h>
+#include <glog/logging.h>
+
+#include <X11/Xft/Xft.h>
+#include <X11/cursorfont.h>
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+
+#include <array>
+
+
 void start(char *what)
 {
     if (!fork())

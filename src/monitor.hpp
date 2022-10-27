@@ -1,13 +1,11 @@
-
+#ifndef __MONITOR__
+#define __MONITOR__
 
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <list>
+#include "util.hpp"
 #include <vector>
-#include <unordered_map>
 #include "tag.hpp"
 #include "client.hpp"
-#include "util.hpp"
 #include <functional>
 
 class Monitor
@@ -60,3 +58,4 @@ public:
 
 
 
+#endif

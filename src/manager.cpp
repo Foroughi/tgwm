@@ -1,4 +1,17 @@
 #include "manager.hpp"
+#ifdef XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif /* XINERAMA */
+#include "config.hpp"
+#include <X11/Xatom.h>
+#include <string>
+#include <glog/logging.h>
+#include <X11/Xutil.h>
+#include <chrono>
+#include <iostream>
+#include <future>
+#include <X11/Xft/Xft.h>
+#include <X11/cursorfont.h>
 
 void Manager::Config()
 {
@@ -31,7 +44,7 @@ void Manager::Config()
             XMapWindow(this->CurrentDisplay, frame);
 
             auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number, frame,
-                                   CONFIG::Tags[info[i].screen_number]);
+                                   Tags[info[i].screen_number]);
 
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
@@ -42,7 +55,7 @@ void Manager::Config()
                 this->DrawBars();
             };
 
-            mon->SetLayout(CONFIG::DefaultLayouts.at(i));
+            mon->SetLayout(DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
         }
 
@@ -59,7 +72,7 @@ void Manager::Config()
         XMapWindow(this->CurrentDisplay, frame);
 
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
-                               CONFIG::Tags[0]);
+                               Tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
 
@@ -86,7 +99,7 @@ Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWi
 {
     this->IsRunning = True;
 
-    this->Widgets = CONFIG::Widgets;
+    this->Widgets = Widgets;
 }
 
 Manager::~Manager()
@@ -263,71 +276,12 @@ void grabkeys(Display *dpy, Window win)
     {
         auto m = modifiers[i];
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
+        for (auto k : Keys)
+        {
+            XGrabKey(dpy, XKeysymToKeycode(dpy, std::get<0>(k)), std::get<1>(k) | m, win,
+                     True, GrabModeAsync, GrabModeAsync);
+        }
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_grave), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Pause), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
-                 True, GrabModeAsync, GrabModeAsync);
-
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m | ControlMask, win,
-                 True, GrabModeAsync, GrabModeAsync);
     }
 }
 
@@ -499,135 +453,15 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 
 void Manager::OnKeyPress(const XKeyEvent &e)
 {
-    if (e.type != MotionNotify)
-        LOG(INFO) << e.type;
 
-    if (e.state & HOTKEY)
+    for (auto k : Keys)
     {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && e.state & std::get<1>(k))
         {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[0], 0);
-                this->SortAll();
-            }
-            else
-                this->Monitors[0]->SelectTagByIndex(0);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("2")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[0], 1);
-                this->SortAll();
-            }
-            else
-                this->Monitors[0]->SelectTagByIndex(1);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("3")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[0], 2);
-                this->SortAll();
-            }
-            else
-                this->Monitors[0]->SelectTagByIndex(2);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("4")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[0], 3);
-                this->SortAll();
-            }
-            else
-                this->Monitors[0]->SelectTagByIndex(3);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("5")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[0], 4);
-                this->SortAll();
-            }
-            else
-                this->Monitors[0]->SelectTagByIndex(4);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("6")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[1], 0);
-                this->SortAll();
-            }
-            else
-                this->Monitors[1]->SelectTagByIndex(0);
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("7")))
-        {
-            if (e.state & ControlMask)
-            {
-                this->MoveSelectedClient(this->Monitors[1], 1);
-                this->SortAll();
-            }
-            else
-                this->Monitors[1]->SelectTagByIndex(1);
-        }
-
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
-        {
-
-            if (e.state & ControlMask)
-            {
-                this->IsRunning = false;
-            }
-            else if (this->GetSelectedClient())
-            {
-                this->SelectedMonitor->RemoveClient(this->GetSelectedClient());
-                this->SelectedMonitor->Sort();
-            }
-            // std::string str = "";
-
-            // for (auto mon : this->Monitors)
-            // {
-            //     str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
-
-            //     str += "Tags :\n";
-            //     for (auto it : mon->GetTags())
-            //     {
-            //         str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
-            //     }
-
-            //     str += "\nClients :\n";
-            //     for (auto it : mon->GetClients(-1))
-            //     {
-            //         str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
-            //     }
-            // }
-
-            // Log(str);
-        }
-
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("grave")))
-        {
-            start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Pause")))
-        {
-            start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+            std::get<2>(k)(this);
         }
     }
-    else
-    {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Print")))
-        {
-            if (e.state & ControlMask)
-                start("scrot -m -e 'mv $f /home/ali/Pictures/'");
-            else
-                start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
-        }
-    }
+
 }
 
 int Manager::OnXError(Display *display, XErrorEvent *e)
@@ -642,6 +476,11 @@ int Manager::OnXError(Display *display, XErrorEvent *e)
 
 void Manager::onFocusIn(XFocusChangeEvent &e)
 {
+}
+
+Monitor *Manager::GetSelectedMonitor()
+{
+    return this->SelectedMonitor;
 }
 
 void Manager::SortAll()
@@ -704,6 +543,16 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
 
     this->SelectedClient->SetTagIndex(index);
     // this->SelectedClient->Hide();
+}
+
+Monitor *Manager::GetMonitor(int index)
+{
+    return this->Monitors[index];
+}
+
+void Manager::Stop()
+{
+    this->IsRunning = false;
 }
 
 int Manager::Run()
