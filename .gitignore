@@ -1,6 +1,6 @@
 /out/**
 
 !/out/.keep
-
+/src/*.o
 .fuse_hidden**
 .depend

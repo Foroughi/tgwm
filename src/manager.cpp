@@ -1,10 +1,8 @@
-#include "manager.h"
+#include "manager.hpp"
 
 void Manager::Config()
 {
-
-    std::vector<Layouts> DefaultLayouts = GetDefaultLayouts();
-
+  
     start("nitrogen --restore");
     start("compton");
 
@@ -95,23 +93,23 @@ void Manager::onSelectedTagChanged(int Index)
 
 std::vector<Widget *> GetWidgetsConfig()
 {
-    auto colors = GetStatusbarColor();
+    
     auto i = 0;
     return {
         new Widget(
-            "time", colors[i++], ICON_FA_CLOCK,
+            "time", Colors[i++], ICON_FA_CLOCK,
             [](Widget *w)
             {
                 return GetTime();
             },
             [](int button) {}),
         new Widget(
-            "date", colors[i++], ICON_FA_CALENDAR,
+            "date", Colors[i++], ICON_FA_CALENDAR,
             [](Widget *w)
             { return GetDate(); },
             [](int button) {}),
         new Widget(
-            "volumn", colors[i++], ICON_FA_VOLUME_HIGH,
+            "volumn", Colors[i++], ICON_FA_VOLUME_HIGH,
             [](Widget *w)
             {
                 std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
@@ -134,12 +132,12 @@ std::vector<Widget *> GetWidgetsConfig()
                 start("pavucontrol");
             }),
         new Widget(
-            "network", colors[i++], ICON_FA_WIFI,
+            "network", Colors[i++], ICON_FA_WIFI,
             [](Widget *w)
             { return ""; },
             [](int button) {}),
         new Widget(
-            "cpu", colors[i++], ICON_FA_MICROCHIP,
+            "cpu", Colors[i++], ICON_FA_MICROCHIP,
             [](Widget *w)
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0 ,1 ) + "%";
@@ -147,7 +145,7 @@ std::vector<Widget *> GetWidgetsConfig()
 
             [](int button) {}),
         new Widget(
-            "memory", colors[i++], ICON_FA_MEMORY,
+            "memory", Colors[i++], ICON_FA_MEMORY,
             [](Widget *w)
             {
                 std::string memory = exec("free -h | grep Mem:");

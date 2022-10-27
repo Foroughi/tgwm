@@ -1,4 +1,4 @@
-#include "monitor.h"
+#include "monitor.hpp"
 
 Monitor::Monitor(Display *display, int screen, Window topbar, std::vector<Tag *> tags) : Topbar(topbar), _Display(display), Screen(screen), Tags(tags)
 {

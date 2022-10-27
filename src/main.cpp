@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <glog/logging.h>
 #include <sstream>
-#include "manager.h"
+#include "manager.hpp"
 
 int main(int argc, char **argv)
 {

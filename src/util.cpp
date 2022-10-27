@@ -1,4 +1,4 @@
-#include "util.h"
+#include "util.hpp"
 
 void start(char *what)
 {
@@ -27,49 +27,6 @@ std::string exec(const char *cmd)
     return result;
 }
 
-std::string ToString(const XEvent &e)
-{
-    static const char *const X_EVENT_TYPE_NAMES[] = {
-        "",
-        "",
-        "KeyPress",
-        "KeyRelease",
-        "ButtonPress",
-        "ButtonRelease",
-        "MotionNotify",
-        "EnterNotify",
-        "LeaveNotify",
-        "FocusIn",
-        "FocusOut",
-        "KeymapNotify",
-        "Expose",
-        "GraphicsExpose",
-        "NoExpose",
-        "VisibilityNotify",
-        "CreateNotify",
-        "DestroyNotify",
-        "UnmapNotify",
-        "MapNotify",
-        "MapRequest",
-        "ReparentNotify",
-        "ConfigureNotify",
-        "ConfigureRequest",
-        "GravityNotify",
-        "ResizeRequest",
-        "CirculateNotify",
-        "CirculateRequest",
-        "PropertyNotify",
-        "SelectionClear",
-        "SelectionRequest",
-        "SelectionNotify",
-        "ColormapNotify",
-        "ClientMessage",
-        "MappingNotify",
-        "GeneralEvent",
-    };
-
-    return X_EVENT_TYPE_NAMES[e.type];
-}
 
 void die(const char *fmt, ...)
 {
@@ -140,27 +97,47 @@ std::string GetDate()
     return std::string(c).substr(0, 11);
 }
 
-std::vector<Layouts> GetDefaultLayouts()
-{
-    return {
-        Layouts_Vertical,
-        Layouts_Horizontal,
-    };
-}
 
-std::vector<std::string> GetStatusbarColor()
+std::string ToString(const XEvent &e)
 {
-    return {
-        "#D04232",
-        "#61afef",
-        "#FFC12F",
-        "#c678dd",
-        "#B8BB26",
-        "#d19a66",
-        "#D3869B",
-        "#98c379",
-        "#c8c874",
-        "#83A598",
-        "#3d4059",
+    static const char *const X_EVENT_TYPE_NAMES[] = {
+        "",
+        "",
+        "KeyPress",
+        "KeyRelease",
+        "ButtonPress",
+        "ButtonRelease",
+        "MotionNotify",
+        "EnterNotify",
+        "LeaveNotify",
+        "FocusIn",
+        "FocusOut",
+        "KeymapNotify",
+        "Expose",
+        "GraphicsExpose",
+        "NoExpose",
+        "VisibilityNotify",
+        "CreateNotify",
+        "DestroyNotify",
+        "UnmapNotify",
+        "MapNotify",
+        "MapRequest",
+        "ReparentNotify",
+        "ConfigureNotify",
+        "ConfigureRequest",
+        "GravityNotify",
+        "ResizeRequest",
+        "CirculateNotify",
+        "CirculateRequest",
+        "PropertyNotify",
+        "SelectionClear",
+        "SelectionRequest",
+        "SelectionNotify",
+        "ColormapNotify",
+        "ClientMessage",
+        "MappingNotify",
+        "GeneralEvent",
     };
+
+    return X_EVENT_TYPE_NAMES[e.type];
 }

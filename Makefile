@@ -24,7 +24,7 @@ LDFLAGS  = ${LIBS}
 
 all: tgwm clean
 
-HEADERS = $(shell find ./src -name "*.h")
+HEADERS = $(shell find ./src -name "*.hpp")
 SOURCES = $(shell find ./src -name "*.cpp")
 
 OBJECTS = $(SOURCES:.cpp=.o)

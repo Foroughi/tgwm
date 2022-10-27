@@ -5,9 +5,9 @@
 #include <list>
 #include <vector>
 #include <unordered_map>
-#include "tag.h"
-#include "client.h"
-#include "util.h"
+#include "tag.hpp"
+#include "client.hpp"
+#include "util.hpp"
 #include <functional>
 
 class Monitor

@@ -1,4 +1,4 @@
-#include "widget.h"
+#include "widget.hpp"
 
 Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int)> clickFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction), OnClick(clickFunction)
 {

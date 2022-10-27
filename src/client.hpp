@@ -4,7 +4,10 @@
 #include <X11/Xutil.h>
 #include <vector>
 #include <unordered_map>
-#include "util.h"
+#include "util.hpp"
+
+#include "config.hpp"
+
 
 class Client
 {

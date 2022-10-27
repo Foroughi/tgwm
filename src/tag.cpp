@@ -1,4 +1,4 @@
-#include "tag.h"
+#include "tag.hpp"
 
 Tag::Tag(int index , std::string name , std::string icon) : Name(name) , Index(index) , Icon(icon)
 {

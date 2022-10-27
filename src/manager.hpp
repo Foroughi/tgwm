@@ -8,10 +8,11 @@
 #include <vector>
 #include <unordered_map>
 #include <X11/Xatom.h>
-#include "monitor.h"
-#include "widget.h"
+#include "monitor.hpp"
+#include "widget.hpp"
+#include "config.hpp"
 #include <X11/cursorfont.h>
-#include "fontawesome.h"
+
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
