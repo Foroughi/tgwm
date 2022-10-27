@@ -10,6 +10,7 @@ The following libraries have been used :
 2. [Xft](https://www.x.org/releases/current/doc/man/man3/Xft.3.xhtml) (Draw texts with a specific font and style)
 3. [Google glog library](https://github.com/google/glog)
 4. [Xephyr](https://www.x.org/archive/X11R7.5/doc/man/man1/Xephyr.1.html) (Virtual display emulator)
+5. [Fontawesome Icon Pack - C++ Header](https://github.com/juliettef/IconFontCppHeaders)
 
 ### Installation
 
