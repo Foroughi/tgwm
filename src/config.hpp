@@ -185,134 +185,133 @@ namespace CONFIG
     /*=====================================================================================================*/
     /*=============================================== Bindings ============================================*/
     /*=====================================================================================================*/
-    inline std::vector<std::tuple<int, int, std::function<void(Manager *)>>> Keys = {
+    inline std::vector<std::tuple<int, int, std::function<void(Manager * , const XKeyEvent)>>> Keys = {
+
+        // Mod + Ctrl + F4
+        {XK_F4, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
+         {
+             manager->Stop();
+         }},
 
         // Mod + F4
-        {XK_F4, HOTKEY, [](Manager *manager)
+        {XK_F4, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
              manager->GetSelectedMonitor()->RemoveClient(manager->GetSelectedClient());
              manager->GetSelectedMonitor()->Sort();
          }},
 
-        // Mod + Ctrl + F4
-        {XK_F4, HOTKEY | ControlMask, [](Manager *manager)
-         {
-             manager->Stop();
-         }},
-
-        // Mod + 1
-        {XK_1, HOTKEY, [](Manager *manager)
-         {
-             manager->GetMonitor(0)->SelectTagByIndex(0);
-         }},
-
         // Mod + Ctrl + 1
-        {XK_1, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_1, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 0);
              manager->SortAll();
          }},
-
-        // Mod + 2
-        {XK_2, HOTKEY, [](Manager *manager)
+        // Mod + 1
+        {XK_1, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(0)->SelectTagByIndex(1);
+             manager->GetMonitor(0)->SelectTagByIndex(0);
          }},
 
         // Mod + Ctrl + 2
-        {XK_2, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_2, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 1);
              manager->SortAll();
          }},
 
-        // Mod + 3
-        {XK_3, HOTKEY, [](Manager *manager)
+        // Mod + 2
+        {XK_2, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(0)->SelectTagByIndex(2);
+             manager->GetMonitor(0)->SelectTagByIndex(1);
          }},
 
         // Mod + Ctrl + 3
-        {XK_3, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_3, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 2);
              manager->SortAll();
          }},
 
-        // Mod + 4
-        {XK_4, HOTKEY, [](Manager *manager)
+        // Mod + 3
+        {XK_3, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(0)->SelectTagByIndex(3);
+             manager->GetMonitor(0)->SelectTagByIndex(2);
          }},
 
         // Mod + Ctrl + 4
-        {XK_4, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_4, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 3);
              manager->SortAll();
          }},
 
-        // Mod + 5
-        {XK_5, HOTKEY, [](Manager *manager)
+        // Mod + 4
+        {XK_4, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(0)->SelectTagByIndex(4);
+             manager->GetMonitor(0)->SelectTagByIndex(3);
          }},
 
         // Mod + Ctrl + 5
-        {XK_5, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_5, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 4);
              manager->SortAll();
          }},
 
-        // Mod + 6
-        {XK_6, HOTKEY, [](Manager *manager)
+        // Mod + 5
+        {XK_5, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(1)->SelectTagByIndex(0);
+             manager->GetMonitor(0)->SelectTagByIndex(4);
          }},
 
         // Mod + Ctrl + 6
-        {XK_6, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_6, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(1), 0);
              manager->SortAll();
          }},
 
-        // Mod + 7
-        {XK_7, HOTKEY, [](Manager *manager)
+        // Mod + 6
+        {XK_6, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
-             manager->GetMonitor(1)->SelectTagByIndex(1);
+             manager->GetMonitor(1)->SelectTagByIndex(0);
          }},
 
         // Mod + Ctrl + 7
-        {XK_7, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_7, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              manager->MoveSelectedClient(manager->GetMonitor(1), 1);
              manager->SortAll();
          }},
 
+        // Mod + 7
+        {XK_7, HOTKEY, [](Manager *manager , const XKeyEvent &e)
+         {
+             manager->GetMonitor(1)->SelectTagByIndex(1);
+         }},
+
         // Mod + ~
-        {XK_grave, HOTKEY, [](Manager *manager)
+        {XK_grave, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
              start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
          }},
 
         // Mod + Pause
-        {XK_Pause, HOTKEY, [](Manager *manager)
+        {XK_Pause, HOTKEY, [](Manager *manager , const XKeyEvent &e)
          {
              start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
          }},
 
-        // Mod + Print
-        {XK_Print, None, [](Manager *manager)
-         {
-             start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
-         }},
-
         // Mod + Ctrl + Print
-        {XK_Print, HOTKEY | ControlMask, [](Manager *manager)
+        {XK_Print, HOTKEY | ControlMask, [](Manager *manager , const XKeyEvent &e)
          {
              start("scrot -m -e 'mv $f /home/ali/Pictures/'");
+         }},
+
+        // Mod + Print
+        {XK_Print, None, [](Manager *manager , const XKeyEvent &e)
+         {
+             start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
          }}
 
     };

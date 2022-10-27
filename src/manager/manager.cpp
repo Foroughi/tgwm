@@ -16,7 +16,7 @@
 void Manager::Config()
 {
 
-   BootstrapFunction(this);
+    BootstrapFunction(this);
 
 #ifdef XINERAMA
 
@@ -25,8 +25,6 @@ void Manager::Config()
         int monitorCount;
 
         Monitor *m;
-
-        
 
         auto info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
 
@@ -49,21 +47,16 @@ void Manager::Config()
 
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
-            
-            
+
             mon->OnSelectedTagChanged = [=](int Index)
             {
-                
                 this->SortAll();
-                
+
                 this->DrawBars();
-                
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
-            
-            
         }
 
         this->DrawBars();
@@ -117,7 +110,7 @@ void Manager::DrawBars()
         this->DrawBar(it);
     }
 
-    this->UpdateWidgets();        
+    this->UpdateWidgets();
 }
 
 void Manager::DrawBar(Monitor *mon)
@@ -187,19 +180,19 @@ void Manager::UpdateWidgets()
 
 void Manager::DrawWidgets()
 {
-    
+
     auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
-    
+
     XftColor bgColor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
     XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0, this->Monitors[0]->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
     auto width = (2 * GAP) + 20;
-    
+
     for (auto w : this->Widgets)
     {
 
@@ -275,7 +268,6 @@ void grabkeys(Display *dpy, Window win)
             XGrabKey(dpy, XKeysymToKeycode(dpy, std::get<0>(k)), std::get<1>(k) | m, win,
                      True, GrabModeAsync, GrabModeAsync);
         }
-
     }
 }
 
@@ -308,7 +300,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     this->SelectedMonitor->AddClient(this->CurrentDisplay, frame, w, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
     this->SelectedMonitor->Sort();
-  
+
     LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
 
@@ -337,8 +329,6 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
     LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
 }
-
-
 
 void Manager::OnMapRequest(const XMapRequestEvent &e)
 {
@@ -434,17 +424,17 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
     for (auto k : CONFIG::Keys)
     {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && e.state & std::get<1>(k))
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && CLEANMASK(std::get<1>(k)) == CLEANMASK(e.state))
         {
-            std::get<2>(k)(this);
+            std::get<2>(k)(this , e);
+            break;
         }
     }
-
 }
 
 int Manager::OnXError(Display *display, XErrorEvent *e)
 {
-    
+
     const int MAX_ERROR_TEXT_LENGTH = 1024;
     char error_text[MAX_ERROR_TEXT_LENGTH];
     XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
@@ -521,7 +511,6 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
     }
 
     this->SelectedClient->SetTagIndex(index);
-
 }
 
 Monitor *Manager::GetMonitor(int index)
@@ -554,12 +543,8 @@ int Manager::Run()
 
     XSetErrorHandler(OnXError);
 
-         
-
-    this->Config();    
+    this->Config();
     this->DrawBars();
-
-
 
     while (IsRunning)
     {
