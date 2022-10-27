@@ -2,18 +2,9 @@
 
 void Manager::Config()
 {
-  
+
     start("nitrogen --restore");
     start("compton");
-
-    std::vector<Tag *> tags[] = {
-        {new Tag(0, "", ICON_FA_COMPUTER),
-         new Tag(1, "dev", ""),
-         new Tag(2, "www", ""),
-         new Tag(3, "term", ""),
-         new Tag(4, "misc", "")},
-        {new Tag(0, "www", ""),
-         new Tag(1, "misc", "")}};
 
 #ifdef XINERAMA
 
@@ -40,7 +31,7 @@ void Manager::Config()
             XMapWindow(this->CurrentDisplay, frame);
 
             auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number, frame,
-                                   tags[info[i].screen_number]);
+                                   CONFIG::Tags[info[i].screen_number]);
 
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
@@ -51,7 +42,7 @@ void Manager::Config()
                 this->DrawBars();
             };
 
-            mon->SetLayout(DefaultLayouts.at(i));
+            mon->SetLayout(CONFIG::DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
         }
 
@@ -68,7 +59,7 @@ void Manager::Config()
         XMapWindow(this->CurrentDisplay, frame);
 
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
-                               tags[0]);
+                               CONFIG::Tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
 
@@ -91,77 +82,11 @@ void Manager::onSelectedTagChanged(int Index)
 {
 }
 
-std::vector<Widget *> GetWidgetsConfig()
-{
-    
-    auto i = 0;
-    return {
-        new Widget(
-            "time", Colors[i++], ICON_FA_CLOCK,
-            [](Widget *w)
-            {
-                return GetTime();
-            },
-            [](int button) {}),
-        new Widget(
-            "date", Colors[i++], ICON_FA_CALENDAR,
-            [](Widget *w)
-            { return GetDate(); },
-            [](int button) {}),
-        new Widget(
-            "volumn", Colors[i++], ICON_FA_VOLUME_HIGH,
-            [](Widget *w)
-            {
-                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
-
-                volumn = volumn.substr(0, volumn.length() - 2);
-
-                int volumnInt = std::stoi(volumn);
-
-                if (volumnInt < 30)
-                    w->SetIcon(ICON_FA_VOLUME_OFF);
-                else if (volumnInt >= 30 && volumnInt < 60)
-                    w->SetIcon(ICON_FA_VOLUME_LOW);
-                if (volumnInt >= 60)
-                    w->SetIcon(ICON_FA_VOLUME_HIGH);
-
-                return "";
-            },
-            [](int button)
-            {
-                start("pavucontrol");
-            }),
-        new Widget(
-            "network", Colors[i++], ICON_FA_WIFI,
-            [](Widget *w)
-            { return ""; },
-            [](int button) {}),
-        new Widget(
-            "cpu", Colors[i++], ICON_FA_MICROCHIP,
-            [](Widget *w)
-            {
-                return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0 ,1 ) + "%";
-            },
-
-            [](int button) {}),
-        new Widget(
-            "memory", Colors[i++], ICON_FA_MEMORY,
-            [](Widget *w)
-            {
-                std::string memory = exec("free -h | grep Mem:");
-
-                return memory.substr(16, 2) + "/" + memory.substr(27, 6);
-            },
-            [](int button) {})
-
-    };
-}
-
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
     this->IsRunning = True;
 
-    this->Widgets = GetWidgetsConfig();
+    this->Widgets = CONFIG::Widgets;
 }
 
 Manager::~Manager()
@@ -181,43 +106,11 @@ void Manager::DrawBars()
     this->UpdateWidgets();
 }
 
-GC create_gc(Display *display, Window win, int Screen)
-{
-    GC gc;                       /* handle of newly created GC.  */
-    unsigned long valuemask = 0; /* which values in 'values' to  */
-                                 /* check when creating the GC.  */
-    XGCValues values;            /* initial values for the GC.   */
-    unsigned int line_width = 2; /* line width for the GC.       */
-    int line_style = LineSolid;  /* style for lines drawing and  */
-    int cap_style = CapButt;     /* style of the line's edje and */
-    int join_style = JoinBevel;  /*  joined lines.		*/
-    int screen_num = Screen;
-
-    gc = XCreateGC(display, win, valuemask, &values);
-    if (gc < 0)
-    {
-        fprintf(stderr, "XCreateGC: \n");
-    }
-
-    XSetForeground(display, gc, WhitePixel(display, Screen));
-    XSetBackground(display, gc, BlackPixel(display, Screen));
-
-    /* define the style of lines that will be drawn using this GC. */
-    XSetLineAttributes(display, gc,
-                       line_width, line_style, cap_style, join_style);
-
-    /* define the fill style for the GC. to be 'solid filling'. */
-    XSetFillStyle(display, gc, FillSolid);
-
-    return gc;
-}
-
 void Manager::DrawBar(Monitor *mon)
 {
 
     XftColor color;
 
-    /* Xft. */
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
 
@@ -265,25 +158,21 @@ void Manager::UpdateWidgets()
         return;
 
     std::async(std::launch::async, [&]()
-               { 
-        
-        this->IsUpdatingWidgets = True;
-        
-        for(auto it : this->Widgets)            
-        {
-            it->Update();
+               {
+                   this->IsUpdatingWidgets = True;
 
-            //std::this_thread::sleep_for(std::chrono::seconds(3));     
-        }
+                   for (auto it : this->Widgets)
+                   {
+                       it->Update();
 
-                   
-        //std::this_thread::sleep_for(std::chrono::seconds(5));     
+                       // std::this_thread::sleep_for(std::chrono::seconds(3));
+                   }
 
-        this->DrawWidgets(); 
+                   // std::this_thread::sleep_for(std::chrono::seconds(5));
 
-        this->IsUpdatingWidgets = False;
+                   this->DrawWidgets();
 
-    });
+                   this->IsUpdatingWidgets = False; });
 }
 
 void Manager::DrawWidgets()
@@ -297,7 +186,7 @@ void Manager::DrawWidgets()
     XftColor bgColor;
     XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
-    XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0,  this->Monitors[0]->GetSize().x - GAP , TOP_BAR_HEIGHT);
+    XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0, this->Monitors[0]->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
     auto width = (2 * GAP) + 20;
 
@@ -310,7 +199,7 @@ void Manager::DrawWidgets()
         XGlyphInfo extents;
         XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
 
-        //XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+        // XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
@@ -325,9 +214,6 @@ void Manager::DrawWidgets()
     }
 
     XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &bgColor);
-
-
-    
 }
 
 void Manager::Unframe(Window w)
