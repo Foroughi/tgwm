@@ -1,5 +1,6 @@
 #include "monitor.hpp"
 #include <X11/Xutil.h>
+#include <glog/logging.h>
 #include "../config.hpp"
 
 Monitor::Monitor(Display *display, int screen, Window topbar, std::vector<Tag *> tags) : Topbar(topbar), _Display(display), Screen(screen), Tags(tags)
@@ -102,6 +103,8 @@ void Monitor::ShowClients(int tagIndex)
 
 void Monitor::Sort()
 {
+    
+    
     std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex());
 
     int cNum = clients.size();
@@ -110,6 +113,8 @@ void Monitor::Sort()
         return;
 
     int i = 0;
+
+    
 
     if (this->_Layout == Layouts_Vertical)
     {

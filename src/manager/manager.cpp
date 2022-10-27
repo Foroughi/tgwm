@@ -26,6 +26,8 @@ void Manager::Config()
 
         Monitor *m;
 
+        
+
         auto info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
 
         for (int i = 0; i < monitorCount; i++)
@@ -43,19 +45,25 @@ void Manager::Config()
             XMapWindow(this->CurrentDisplay, frame);
 
             auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number, frame,
-                                   Tags[info[i].screen_number]);
+                                   CONFIG::Tags[info[i].screen_number]);
 
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
-
+            
+            
             mon->OnSelectedTagChanged = [=](int Index)
             {
+                
                 this->SortAll();
+                
                 this->DrawBars();
+                
             };
 
-            mon->SetLayout(DefaultLayouts.at(i));
+            mon->SetLayout(CONFIG::DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
+            
+            
         }
 
         this->DrawBars();
@@ -69,7 +77,7 @@ void Manager::Config()
         XMapWindow(this->CurrentDisplay, frame);
 
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
-                               Tags[0]);
+                               CONFIG::Tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
 
@@ -92,7 +100,7 @@ Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWi
 {
     this->IsRunning = True;
 
-    this->Widgets = Widgets;
+    this->Widgets = CONFIG::Widgets;
 }
 
 Manager::~Manager()
@@ -109,7 +117,7 @@ void Manager::DrawBars()
         this->DrawBar(it);
     }
 
-    this->UpdateWidgets();
+    this->UpdateWidgets();        
 }
 
 void Manager::DrawBar(Monitor *mon)
@@ -179,19 +187,19 @@ void Manager::UpdateWidgets()
 
 void Manager::DrawWidgets()
 {
-
+    
     auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
-
+    
     XftColor bgColor;
-    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_BG, &bgColor);
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
     XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0, this->Monitors[0]->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
     auto width = (2 * GAP) + 20;
-
+    
     for (auto w : this->Widgets)
     {
 
@@ -262,7 +270,7 @@ void grabkeys(Display *dpy, Window win)
     {
         auto m = modifiers[i];
 
-        for (auto k : Keys)
+        for (auto k : CONFIG::Keys)
         {
             XGrabKey(dpy, XKeysymToKeycode(dpy, std::get<0>(k)), std::get<1>(k) | m, win,
                      True, GrabModeAsync, GrabModeAsync);
@@ -330,15 +338,7 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
 }
 
-int Manager::OnXError(XErrorEvent *e)
-{
 
-    const int MAX_ERROR_TEXT_LENGTH = 1024;
-    char error_text[MAX_ERROR_TEXT_LENGTH];
-    XGetErrorText(this->CurrentDisplay, e->error_code, error_text, sizeof(error_text));
-
-    return 0;
-}
 
 void Manager::OnMapRequest(const XMapRequestEvent &e)
 {
@@ -432,7 +432,7 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 void Manager::OnKeyPress(const XKeyEvent &e)
 {
 
-    for (auto k : Keys)
+    for (auto k : CONFIG::Keys)
     {
         if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && e.state & std::get<1>(k))
         {
@@ -444,11 +444,12 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
 int Manager::OnXError(Display *display, XErrorEvent *e)
 {
-
+    
     const int MAX_ERROR_TEXT_LENGTH = 1024;
     char error_text[MAX_ERROR_TEXT_LENGTH];
     XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
-
+    LOG(INFO) << error_text;
+    Log(error_text);
     return 0;
 }
 
@@ -553,8 +554,12 @@ int Manager::Run()
 
     XSetErrorHandler(OnXError);
 
-    this->Config();
+         
+
+    this->Config();    
     this->DrawBars();
+
+
 
     while (IsRunning)
     {
