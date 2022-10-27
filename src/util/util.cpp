@@ -77,7 +77,7 @@ void *ecalloc(size_t nmemb, size_t size)
 void Log(std::string log)
 {
 
-    std::ofstream MyFile("./log.txt");
+    std::ofstream MyFile("~/.tgwm-log");
     MyFile << log;
     MyFile.close();
 }

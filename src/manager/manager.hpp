@@ -3,8 +3,8 @@
 
 #include <X11/Xlib.h>
 #include <vector>
-#include "monitor.hpp"
-#include "widget.hpp"
+#include "../monitor/monitor.hpp"
+#include "../widget/widget.hpp"
 
 class Manager
 {

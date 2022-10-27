@@ -24,7 +24,7 @@ LDFLAGS  = ${LIBS}
 
 all: tgwm clean
 
-HEADERS = $(shell find ./src -name "*.hpp")
+HEADERS = $(shell find ./src/ -name "*.hpp")
 SOURCES = $(shell find ./src -name "*.cpp")
 
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -43,5 +43,5 @@ uninstall:
 
 .PHONY: clean
 clean:
-	rm -f src/*.o
+	rm -f src/*/*.o
 

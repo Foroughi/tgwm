@@ -3,7 +3,7 @@
 #define __CLIENT__
 
 #include <X11/Xlib.h>
-#include "util.hpp"
+#include "../util/util.hpp"
 
 class Client
 {

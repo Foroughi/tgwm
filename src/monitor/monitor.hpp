@@ -2,10 +2,10 @@
 #define __MONITOR__
 
 #include <X11/Xlib.h>
-#include "util.hpp"
+#include "../util/util.hpp"
 #include <vector>
-#include "tag.hpp"
-#include "client.hpp"
+#include "../tag/tag.hpp"
+#include "../client/client.hpp"
 #include <functional>
 
 class Monitor

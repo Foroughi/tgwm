@@ -1,8 +1,8 @@
-#include "manager.hpp"
+#include "../manager/manager.hpp"
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
-#include "config.hpp"
+#include "../config.hpp"
 #include <X11/Xatom.h>
 #include <string>
 #include <glog/logging.h>

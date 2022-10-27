@@ -7,12 +7,12 @@
 #include <vector>
 #include <string>
 #include "tuple"
-#include "tag.hpp"
-#include "widget.hpp"
-#include "client.hpp"
-#include "monitor.hpp"
-#include "manager.hpp"
-#include "util.hpp"
+#include "./tag/tag.hpp"
+#include "./widget/widget.hpp"
+#include "./client/client.hpp"
+#include "./monitor/monitor.hpp"
+#include "./manager/manager.hpp"
+#include "./util/util.hpp"
 
 #define TOP_BAR_HEIGHT 33
 #define GAP 7
