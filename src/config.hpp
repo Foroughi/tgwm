@@ -14,6 +14,9 @@
 #include "./manager/manager.hpp"
 #include "./util/util.hpp"
 
+/*=====================================================================================================*/
+/*=============================================== Configs =============================================*/
+/*=====================================================================================================*/
 #define TOP_BAR_HEIGHT 33
 #define GAP 7
 #define TAGGAP 5
@@ -25,21 +28,51 @@
 #define TOPBAR_SELECTED_FG "#61afef"
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
+
+/*=====================================================================================================*/
+/*=============================================== Bootstrap =============================================*/
+/*=====================================================================================================*/
+
+inline std::function<void(Manager*)> BootstrapFunction = [](Manager * Manager){
+
+    start("nitrogen --restore");
+    start("compton");
+
+};
+
+
+/*=====================================================================================================*/
+/*================================================ Fonts ==============================================*/
+/*=====================================================================================================*/
 #define TOPBAR_FONT "monospace-7:style=Bold"
 #define ICON_FONT "Font Awesome 6 Free:size=7:style=Solid"
 
-#define ICON_FA_WIFI "\xef\x87\xab"         // U+f1eb
-#define ICON_FA_MICROCHIP "\xef\x8b\x9b"    // U+f2db
-#define ICON_FA_MEMORY "\xef\x94\xb8"       // U+f538
-#define ICON_FA_COMPUTER "\xee\x93\xa5"     // U+e4e5
-#define ICON_FA_CALENDAR "\xef\x84\xb3"     // U+f133
-#define ICON_FA_CLOCK "\xef\x80\x97"        // U+f017
-#define ICON_FA_VOLLEYBALL "\xef\x91\x9f"   // U+f45f
-#define ICON_FA_VOLUME_HIGH "\xef\x80\xa8"  // U+f028
-#define ICON_FA_VOLUME_LOW "\xef\x80\xa7"   // U+f027
-#define ICON_FA_VOLUME_OFF "\xef\x80\xa6"   // U+f026
-#define ICON_FA_VOLUME_XMARK "\xef\x9a\xa9" // U+f6a9
 
+
+
+
+/*=====================================================================================================*/
+/*================================================ Icons ==============================================*/
+/*=====================================================================================================*/
+#define ICON_FA_WIFI "\xef\x87\xab"         
+#define ICON_FA_MICROCHIP "\xef\x8b\x9b"    
+#define ICON_FA_MEMORY "\xef\x94\xb8"       
+#define ICON_FA_COMPUTER "\xee\x93\xa5"     
+#define ICON_FA_CALENDAR "\xef\x84\xb3"     
+#define ICON_FA_CLOCK "\xef\x80\x97"        
+#define ICON_FA_VOLLEYBALL "\xef\x91\x9f"   
+#define ICON_FA_VOLUME_HIGH "\xef\x80\xa8"  
+#define ICON_FA_VOLUME_LOW "\xef\x80\xa7"   
+#define ICON_FA_VOLUME_OFF "\xef\x80\xa6"   
+#define ICON_FA_VOLUME_XMARK "\xef\x9a\xa9" 
+
+
+
+
+
+/*=====================================================================================================*/
+/*============================================ Default Layouts ========================================*/
+/*=====================================================================================================*/
 inline std::vector<Layouts> DefaultLayouts =
     {
 
@@ -48,6 +81,12 @@ inline std::vector<Layouts> DefaultLayouts =
 
 };
 
+
+
+
+/*=====================================================================================================*/
+/*============================================ Widget Colors ==========================================*/
+/*=====================================================================================================*/
 inline std::vector<std::string>
     Colors =
         {
@@ -66,6 +105,12 @@ inline std::vector<std::string>
 
 };
 
+
+
+
+/*=====================================================================================================*/
+/*================================================ TAGS ===============================================*/
+/*=====================================================================================================*/
 inline std::vector<Tag *> Tags[] = {
     {new Tag(0, "", ICON_FA_COMPUTER),
      new Tag(1, "dev", ""),
@@ -75,21 +120,30 @@ inline std::vector<Tag *> Tags[] = {
     {new Tag(0, "www", ""),
      new Tag(1, "misc", "")}};
 
+
+
+
+/*=====================================================================================================*/
+/*================================================ Widgets ============================================*/
+/*=====================================================================================================*/
 inline std::vector<Widget *> Widgets = {
-    new Widget(
-        "time", Colors[0], ICON_FA_CLOCK,
+
+        //Time Widget
+        new Widget("time", Colors[0], ICON_FA_CLOCK,
         [](Widget *w)
         {
             return GetTime();
         },
         [](int button) {}),
-    new Widget(
-        "date", Colors[1], ICON_FA_CALENDAR,
+
+        //Date Widget
+        new Widget("date", Colors[1], ICON_FA_CALENDAR,
         [](Widget *w)
         { return GetDate(); },
         [](int button) {}),
-    new Widget(
-        "volumn", Colors[2], ICON_FA_VOLUME_HIGH,
+
+        //Volume Widget
+        new Widget("volumn", Colors[2], ICON_FA_VOLUME_HIGH,
         [](Widget *w)
         {
             std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
@@ -111,21 +165,24 @@ inline std::vector<Widget *> Widgets = {
         {
             start("pavucontrol");
         }),
-    new Widget(
-        "network", Colors[3], ICON_FA_WIFI,
+
+
+        //Network Widget
+        new Widget("network", Colors[3], ICON_FA_WIFI,
         [](Widget *w)
         { return ""; },
         [](int button) {}),
-    new Widget(
-        "cpu", Colors[4], ICON_FA_MICROCHIP,
+
+        //Cpu Widget
+        new Widget("cpu", Colors[4], ICON_FA_MICROCHIP,
         [](Widget *w)
         {
             return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
         },
-
         [](int button) {}),
-    new Widget(
-        "memory", Colors[5], ICON_FA_MEMORY,
+
+        //Memory Widget
+        new Widget("memory", Colors[5], ICON_FA_MEMORY,
         [](Widget *w)
         {
             std::string memory = exec("free -h | grep Mem:");
@@ -136,94 +193,142 @@ inline std::vector<Widget *> Widgets = {
 
 };
 
+
+/*=====================================================================================================*/
+/*=============================================== Bindings ============================================*/
+/*=====================================================================================================*/
 inline std::vector<std::tuple<int, int, std::function<void(Manager *)>>> Keys = {
+
+    //Mod + F4
     {XK_F4, HOTKEY, [](Manager *manager)
-     {
+    {
         manager->GetSelectedMonitor()->RemoveClient(manager->GetSelectedClient());
         manager->GetSelectedMonitor()->Sort();
-     }},
-     {XK_F4, HOTKEY  | ControlMask, [](Manager *manager)
-     {
-       manager->Stop();
-     }},
-      {XK_1, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + F4
+    {XK_F4, HOTKEY  | ControlMask, [](Manager *manager)
+    {
+        manager->Stop();
+    }},
+
+    //Mod + 1
+    {XK_1, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(0)->SelectTagByIndex(0);
-     }},
-      {XK_1, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 1    
+    {XK_1, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(0), 0);
         manager->SortAll();
-     }},
-      {XK_2, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + 2
+    {XK_2, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(0)->SelectTagByIndex(1);
-     }},
-      {XK_2, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 2
+    {XK_2, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(0), 1);
         manager->SortAll();
-     }},
-      {XK_3, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + 3
+    {XK_3, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(0)->SelectTagByIndex(2);
-     }},
-      {XK_3, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 3
+    {XK_3, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(0), 2);
         manager->SortAll();
-     }},
-      {XK_4, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + 4
+    {XK_4, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(0)->SelectTagByIndex(3);
-     }},
-      {XK_4, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 4
+    {XK_4, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(0), 3);
         manager->SortAll();
-     }},
-      {XK_5, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + 5
+    {XK_5, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(0)->SelectTagByIndex(4);
-     }},
-      {XK_5, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 5
+    {XK_5, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(0), 4);
         manager->SortAll();
-     }},
-      {XK_6, HOTKEY, [](Manager *manager)
-     {
+    }},
+
+    //Mod + 6
+    {XK_6, HOTKEY, [](Manager *manager)
+    {
         manager->GetMonitor(1)->SelectTagByIndex(0);
-     }},
-      {XK_6, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 6
+    {XK_6, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(1), 0);
         manager->SortAll();
-     }},
-     {XK_7, HOTKEY , [](Manager *manager)
-     {
+    }},
+
+    //Mod + 7
+    {XK_7, HOTKEY , [](Manager *manager)
+    {
         manager->GetMonitor(1)->SelectTagByIndex(1); 
-     }},
-     {XK_7, HOTKEY | ControlMask, [](Manager *manager)
-     {
+    }},
+
+    //Mod + Ctrl + 7
+    {XK_7, HOTKEY | ControlMask, [](Manager *manager)
+    {
         manager->MoveSelectedClient(manager->GetMonitor(1), 1);
         manager->SortAll();
-     }},
-     {XK_grave, HOTKEY, [](Manager *manager)
-     {
-         start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
-     }},
-     {XK_Pause, HOTKEY, [](Manager *manager)
-     {
-         start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
-     }},
-     {XK_Print, None , [](Manager *manager)
-     {
-         start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
-     }},
-     {XK_Print, HOTKEY | ControlMask , [](Manager *manager)
-     {
-         start("scrot -m -e 'mv $f /home/ali/Pictures/'");
-     }}};
+    }},
+
+    //Mod + ~
+    {XK_grave, HOTKEY, [](Manager *manager)
+    {
+        start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+    }},
+
+    //Mod + Pause
+    {XK_Pause, HOTKEY, [](Manager *manager)
+    {
+        start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+    }},
+
+    //Mod + Print
+    {XK_Print, None , [](Manager *manager)
+    {
+        start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
+    }},
+    
+    //Mod + Ctrl + Print
+    {XK_Print, HOTKEY | ControlMask , [](Manager *manager)
+    {
+        start("scrot -m -e 'mv $f /home/ali/Pictures/'");
+    }}
+    
+};
+
+
 
 #endif

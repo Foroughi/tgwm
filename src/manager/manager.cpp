@@ -16,8 +16,7 @@
 void Manager::Config()
 {
 
-    start("nitrogen --restore");
-    start("compton");
+   BootstrapFunction(this);
 
 #ifdef XINERAMA
 
@@ -67,8 +66,6 @@ void Manager::Config()
 
         const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, DisplayWidth(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
 
-        // XAddToSaveSet(this->CurrentDisplay, frame);
-        // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
         XMapWindow(this->CurrentDisplay, frame);
 
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
@@ -80,10 +77,6 @@ void Manager::Config()
         {
             this->DrawBars();
         };
-
-        // draw = drw_create(this->CurrentDisplay, mon->GetScreen(), this->root,
-        //                   mon->GetSize().x,
-        //                   mon->GetSize().y);
 
         this->Monitors.push_back(mon);
     }
@@ -177,11 +170,7 @@ void Manager::UpdateWidgets()
                    for (auto it : this->Widgets)
                    {
                        it->Update();
-
-                       // std::this_thread::sleep_for(std::chrono::seconds(3));
                    }
-
-                   // std::this_thread::sleep_for(std::chrono::seconds(5));
 
                    this->DrawWidgets();
 
@@ -197,7 +186,7 @@ void Manager::DrawWidgets()
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
 
     XftColor bgColor;
-    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_BG, &bgColor);
 
     XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0, this->Monitors[0]->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
@@ -211,8 +200,6 @@ void Manager::DrawWidgets()
 
         XGlyphInfo extents;
         XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
-
-        // XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
@@ -232,7 +219,6 @@ void Manager::DrawWidgets()
 void Manager::Unframe(Window w)
 {
 
-    // const Window frame = clients_[w];
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
     const Window frame = c->GetFrame();
@@ -302,7 +288,6 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
 
-    // XSelectInput(this->CurrentDisplay, frame, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     XSelectInput(
         this->CurrentDisplay,
         frame,
@@ -311,18 +296,11 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
-    // clients_[w] = frame;
 
     this->SelectedMonitor->AddClient(this->CurrentDisplay, frame, w, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
     this->SelectedMonitor->Sort();
-    // XResizeWindow(this->CurrentDisplay, w, (this->SelectedMonitor->GetSize().x - 20), this->SelectedMonitor->GetSize().y - 20 - TOP_BAR_HEIGHT);
-
-    // XGrabButton(this->CurrentDisplay, Button1, Mod1Mask, w, false, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, GrabModeAsync, GrabModeAsync, None, None);
-    // XGrabButton(this->CurrentDisplay, Button3, Mod1Mask, w, false, ButtonPressMask | ButtonReleaseMask | ButtonMotionMask, GrabModeAsync, GrabModeAsync, None, None);
-    // XGrabKey(this->CurrentDisplay, XKeysymToKeycode(this->CurrentDisplay, XK_F4), Mod1Mask, w, false, GrabModeAsync, GrabModeAsync);
-    // XGrabKey(this->CurrentDisplay, XKeysymToKeycode(this->CurrentDisplay, XK_F1), HOTKEY, w, false, GrabModeAsync, GrabModeAsync);
-
+  
     LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
 
@@ -542,7 +520,7 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
     }
 
     this->SelectedClient->SetTagIndex(index);
-    // this->SelectedClient->Hide();
+
 }
 
 Monitor *Manager::GetMonitor(int index)
