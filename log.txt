@@ -1,12 +1,1 @@
-Monitor (0): (size :800:600) (loc :0:0)
-Tags :
-sys (0) (clients : 0) 
-dev (1) (clients : 2) 
-www (2) (clients : 1) 
-term(3) (clients : 0) 
-misc(4) (clients : 0) 
-
-Clients :
-tag : (1): (size :374:554) (loc :-1496:0)
-tag : (1): (size :374:554) (loc :-1496:0)
-tag : (2): (size :774:554) (loc :10:30)
+fontawsome is loaded

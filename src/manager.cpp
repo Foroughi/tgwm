@@ -3,14 +3,19 @@
 void Manager::Config()
 {
 
+    std::vector<Layouts> DefaultLayouts = GetDefaultLayouts();
+
+    start("nitrogen --restore");
+    start("compton");
+
     std::vector<Tag *> tags[] = {
-        {new Tag(0, "sys "),
-         new Tag(1, "dev "),
-         new Tag(2, "www "),
-         new Tag(3, "term"),
-         new Tag(4, "misc")},
-        {new Tag(0, "www "),
-         new Tag(1, "misc")}};
+        {new Tag(0, "", ICON_FA_COMPUTER),
+         new Tag(1, "dev", ""),
+         new Tag(2, "www", ""),
+         new Tag(3, "term", ""),
+         new Tag(4, "misc", "")},
+        {new Tag(0, "www", ""),
+         new Tag(1, "misc", "")}};
 
 #ifdef XINERAMA
 
@@ -19,12 +24,24 @@ void Manager::Config()
         int monitorCount;
 
         Monitor *m;
-        int w = 0;
+
         auto info = XineramaQueryScreens(this->CurrentDisplay, &monitorCount);
 
         for (int i = 0; i < monitorCount; i++)
         {
-            auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number,
+
+            const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, info[i].x_org + GAP, info[i].y_org + GAP, info[i].width - (GAP * 2), TOP_BAR_HEIGHT - (1 * GAP), 0, TOPBAR_BG, TOPBAR_BG);
+
+            Atom atom = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_OPACITY", False);
+            uint opacity = 0xCCCCCCCCCCCCCCCCCCCD;
+            XChangeProperty(this->CurrentDisplay, frame, atom, XA_CARDINAL, 32,
+                            PropModeReplace, (unsigned char *)&opacity, 1L);
+
+            XAddToSaveSet(this->CurrentDisplay, frame);
+            // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
+            XMapWindow(this->CurrentDisplay, frame);
+
+            auto mon = new Monitor(this->CurrentDisplay, info[i].screen_number, frame,
                                    tags[info[i].screen_number]);
 
             mon->SetSize(info[i].width, info[i].height);
@@ -36,17 +53,23 @@ void Manager::Config()
                 this->DrawBars();
             };
 
-            // this->DrawBars();
-
+            mon->SetLayout(DefaultLayouts.at(i));
             this->Monitors.push_back(mon);
         }
+
+        this->DrawBars();
     }
     else
 #endif
     {
 
-        LOG(INFO) << "Not using Xinerama";
-        auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay),
+        const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, DisplayWidth(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
+
+        // XAddToSaveSet(this->CurrentDisplay, frame);
+        // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
+        XMapWindow(this->CurrentDisplay, frame);
+
+        auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
                                tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
@@ -70,10 +93,77 @@ void Manager::onSelectedTagChanged(int Index)
 {
 }
 
+std::vector<Widget *> GetWidgetsConfig()
+{
+    auto colors = GetStatusbarColor();
+    auto i = 0;
+    return {
+        new Widget(
+            "time", colors[i++], ICON_FA_CLOCK,
+            [](Widget *w)
+            {
+                return GetTime();
+            },
+            [](int button) {}),
+        new Widget(
+            "date", colors[i++], ICON_FA_CALENDAR,
+            [](Widget *w)
+            { return GetDate(); },
+            [](int button) {}),
+        new Widget(
+            "volumn", colors[i++], ICON_FA_VOLUME_HIGH,
+            [](Widget *w)
+            {
+                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
+
+                volumn = volumn.substr(0, volumn.length() - 2);
+
+                int volumnInt = std::stoi(volumn);
+
+                if (volumnInt < 30)
+                    w->SetIcon(ICON_FA_VOLUME_OFF);
+                else if (volumnInt >= 30 && volumnInt < 60)
+                    w->SetIcon(ICON_FA_VOLUME_LOW);
+                if (volumnInt >= 60)
+                    w->SetIcon(ICON_FA_VOLUME_HIGH);
+
+                return "";
+            },
+            [](int button)
+            {
+                start("pavucontrol");
+            }),
+        new Widget(
+            "network", colors[i++], ICON_FA_WIFI,
+            [](Widget *w)
+            { return ""; },
+            [](int button) {}),
+        new Widget(
+            "cpu", colors[i++], ICON_FA_MICROCHIP,
+            [](Widget *w)
+            {
+                return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0 ,1 ) + "%";
+            },
+
+            [](int button) {}),
+        new Widget(
+            "memory", colors[i++], ICON_FA_MEMORY,
+            [](Widget *w)
+            {
+                std::string memory = exec("free -h | grep Mem:");
+
+                return memory.substr(16, 2) + "/" + memory.substr(27, 6);
+            },
+            [](int button) {})
+
+    };
+}
+
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
-
     this->IsRunning = True;
+
+    this->Widgets = GetWidgetsConfig();
 }
 
 Manager::~Manager()
@@ -86,8 +176,11 @@ void Manager::DrawBars()
 
     for (auto it : this->Monitors)
     {
+
         this->DrawBar(it);
     }
+
+    this->UpdateWidgets();
 }
 
 GC create_gc(Display *display, Window win, int Screen)
@@ -124,35 +217,119 @@ GC create_gc(Display *display, Window win, int Screen)
 void Manager::DrawBar(Monitor *mon)
 {
 
-    GC gc = create_gc(this->CurrentDisplay, this->root, mon->GetScreen());
+    XftColor color;
 
-    XSetForeground(this->CurrentDisplay, gc, 0xffffff);
-    // XDrawRectangle(this->CurrentDisplay, this->root, gc, 120, 150, 50, 60);
-    XFillRectangle(this->CurrentDisplay, this->root, gc, mon->GetLoc().x, mon->GetLoc().y, mon->GetSize().x, TOP_BAR_HEIGHT);
+    /* Xft. */
+    auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
+    auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
 
-    // int num_stuff = sizeof(stuff) / sizeof(XTextItem);
+    auto d = XftDrawCreate(this->CurrentDisplay, mon->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
-    XSetForeground(this->CurrentDisplay, gc, BlackPixel(this->CurrentDisplay, mon->GetScreen()));
-    // XSetBackground(display, gc, BlackPixel(display, screen_num));
+    XftColor normalcolor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_FG, &normalcolor);
 
-    auto i = 0;
+    XftColor selectedcolor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOPBAR_SELECTED_FG, &selectedcolor);
+
+    XftColor bgColor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
+
+    XftDrawRect(d, &bgColor, 0, 0, 300, TOP_BAR_HEIGHT);
+
+    int x = 10;
+    int w = 0;
     for (auto it : mon->GetTags())
     {
+        XGlyphInfo extents;
+        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)it->GetName().data(), it->GetName().length(), &extents);
+
+        if (it->GetName().length() > 0)
+        {
+            XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+            w = TAGGAP * 2 + extents.width;
+        }
+        else
+        {
+            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, iconfont, x, 18, (const FcChar8 *)ICON_FA_COMPUTER, 3);
+            w = TAGGAP * 2 + 15;
+        }
 
         if (it == mon->GetSelectedTag())
-            XSetForeground(this->CurrentDisplay, gc, 0xff0000);
-        else
-            XSetForeground(this->CurrentDisplay, gc, BlackPixel(this->CurrentDisplay, mon->GetScreen()));
+            XftDrawRect(d, &selectedcolor, x, 23, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, 3);
 
-        XTextItem stuff[] = {
-            //{std::to_string(mon->GetClients(it->GetIndex()).size()).data(), 0 it->GetName().length(), 5, None}};
-
-            {it->GetName().data(), 4, 5, None}};
-
-        XDrawText(this->CurrentDisplay, this->root, gc, mon->GetLoc().x + (i * TAG_LENGHT), 13, stuff, 1);
-
-        i++;
+        x += w;
     }
+}
+
+void Manager::UpdateWidgets()
+{
+    if (this->IsUpdatingWidgets)
+        return;
+
+    std::async(std::launch::async, [&]()
+               { 
+        
+        this->IsUpdatingWidgets = True;
+        
+        for(auto it : this->Widgets)            
+        {
+            it->Update();
+
+            //std::this_thread::sleep_for(std::chrono::seconds(3));     
+        }
+
+                   
+        //std::this_thread::sleep_for(std::chrono::seconds(5));     
+
+        this->DrawWidgets(); 
+
+        this->IsUpdatingWidgets = False;
+
+    });
+}
+
+void Manager::DrawWidgets()
+{
+
+    auto d = XftDrawCreate(this->CurrentDisplay, this->Monitors[0]->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
+
+    auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
+    auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
+
+    XftColor bgColor;
+    XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
+
+    XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - 500, 0,  this->Monitors[0]->GetSize().x - GAP , TOP_BAR_HEIGHT);
+
+    auto width = (2 * GAP) + 20;
+
+    for (auto w : this->Widgets)
+    {
+
+        XftColor selectedcolor;
+        XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
+
+        XGlyphInfo extents;
+        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
+
+        //XftDrawRect(d, &bgColor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+
+        XftDrawStringUtf8(d, &selectedcolor, iconfont, this->Monitors[0]->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
+
+        if (strlen(w->GetValue().data()) > 0)
+            XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
+
+        XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
+
+        width += extents.width + 27;
+
+        XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
+    }
+
+    XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &bgColor);
+
+
+    
 }
 
 void Manager::Unframe(Window w)
@@ -200,75 +377,78 @@ void grabkeys(Display *dpy, Window win)
     XUngrabKey(dpy, AnyKey, AnyModifier, win);
     for (int i = 0; i < 4; i++)
     {
-        auto h = HOTKEY | modifiers[i];
+        auto m = modifiers[i];
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F1), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F2), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F3), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F4), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_F5), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_1), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_2), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_3), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_4), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_5), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_6), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_grave), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_7), h | ControlMask, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Pause), HOTKEY | m, win,
                  True, GrabModeAsync, GrabModeAsync);
 
-        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_x), h, win,
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m, win,
+                 True, GrabModeAsync, GrabModeAsync);
+
+        XGrabKey(dpy, XKeysymToKeycode(dpy, XK_Print), HOTKEY | m | ControlMask, win,
                  True, GrabModeAsync, GrabModeAsync);
     }
 }
 
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
-
-    const unsigned long BORDER_COLOR = 0x0000ff;
-    const unsigned long BG_COLOR = 0x0000ff;
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
@@ -282,7 +462,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         }
     }
 
-    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
+    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
 
     // XSelectInput(this->CurrentDisplay, frame, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
     XSelectInput(
@@ -360,11 +540,13 @@ void Manager::OnMapNotify(const XMapEvent &e) {}
 
 void Manager::OnUnmapNotify(const XUnmapEvent &e)
 {
+
     if (this->SelectedMonitor->FindByWindow(e.window) == NULL)
     {
         LOG(INFO) << "Ignore UnmapNotify for non-client window " << e.window;
         return;
     }
+
     if (e.event == this->root)
     {
         LOG(INFO) << "Ignore UnmapNotify for reparented pre-existing window "
@@ -429,20 +611,6 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
 
 void Manager::OnMouseLeave(const XCrossingEvent &e)
 {
-
-    // if (e.window != this->root)
-    // {
-    //     Client* c = this->FindClientByWin(e.window);
-
-    //     if(c)
-    //     {
-
-    //         c->
-
-    //     }
-
-    //     return;
-    // }
 }
 
 void Manager::OnKeyPress(const XKeyEvent &e)
@@ -452,11 +620,7 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
     if (e.state & HOTKEY)
     {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F1")))
-        {
-            IsRunning = False;
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("1")))
         {
             if (e.state & ControlMask)
             {
@@ -527,49 +691,57 @@ void Manager::OnKeyPress(const XKeyEvent &e)
                 this->Monitors[1]->SelectTagByIndex(1);
         }
 
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F2")))
-        {
-            start("xterm");
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F3")))
-        {
-            start("code");
-        }
         else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F4")))
         {
-            start("google-chrome");
-        }
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("F5")))
-        {            
-            std::string str = "";
 
-            for (auto mon : this->Monitors)
+            if (e.state & ControlMask)
             {
-                str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
-
-                str += "Tags :\n";
-                for (auto it : mon->GetTags())
-                {
-                    str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
-                }
-
-                str += "\nClients :\n";
-                for (auto it : mon->GetClients(-1))
-                {
-                    str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
-                }
+                this->IsRunning = false;
             }
-
-            Log(str);
-        }
-
-        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("x")))
-        {
-            if (this->GetSelectedClient())
+            else if (this->GetSelectedClient())
             {
                 this->SelectedMonitor->RemoveClient(this->GetSelectedClient());
                 this->SelectedMonitor->Sort();
             }
+            // std::string str = "";
+
+            // for (auto mon : this->Monitors)
+            // {
+            //     str += "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
+
+            //     str += "Tags :\n";
+            //     for (auto it : mon->GetTags())
+            //     {
+            //         str += it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
+            //     }
+
+            //     str += "\nClients :\n";
+            //     for (auto it : mon->GetClients(-1))
+            //     {
+            //         str += "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
+            //     }
+            // }
+
+            // Log(str);
+        }
+
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("grave")))
+        {
+            start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+        }
+        else if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Pause")))
+        {
+            start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+        }
+    }
+    else
+    {
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, XStringToKeysym("Print")))
+        {
+            if (e.state & ControlMask)
+                start("scrot -m -e 'mv $f /home/ali/Pictures/'");
+            else
+                start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
         }
     }
 }
@@ -617,12 +789,12 @@ void Manager::SelectClient(Client *client)
 {
     if (this->SelectedClient)
 
-        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0x0000ff);
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), CLIENT_NORMAL_BCOLOR);
 
     if (client)
     {
         this->SelectedClient = client;
-        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), 0xff0000);
+        XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), CLIENT_SELECTED_BCOLOR);
 
         XSetInputFocus(this->CurrentDisplay, client->GetWindow(), RevertToPointerRoot, CurrentTime);
     }
@@ -636,7 +808,7 @@ void Manager::SelectClient(Client *client)
 void Manager::MoveSelectedClient(Monitor *mon, int index)
 {
 
-    if(!this->SelectedClient)
+    if (!this->SelectedClient)
         return;
 
     for (auto it : this->Monitors)
@@ -653,45 +825,27 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
 int Manager::Run()
 {
 
+    XSetWindowAttributes wa;
+
+    wa.cursor = XCreateFontCursor(this->CurrentDisplay, XC_left_ptr);
+    wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
+    XChangeWindowAttributes(this->CurrentDisplay, this->root, CWEventMask | CWCursor, &wa);
+
     XSelectInput(
         this->CurrentDisplay,
         this->root,
-        SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask);
+        wa.event_mask);
 
     XSync(this->CurrentDisplay, false);
 
     grabkeys(this->CurrentDisplay, this->root);
 
     XSetErrorHandler(OnXError);
-    // XGrabServer(this->CurrentDisplay);
-
-    // Window returned_root, returned_parent;
-    // Window *top_level_windows;
-    // unsigned int num_top_level_windows;
-    // CHECK(XQueryTree(
-    //     this->CurrentDisplay,
-    //     this->root,
-    //     &returned_root,
-    //     &returned_parent,
-    //     &top_level_windows,
-    //     &num_top_level_windows));
-    // CHECK_EQ(returned_root, this->root);
-
-    // for (unsigned int i = 0; i < num_top_level_windows; ++i)
-    // {
-    //     Frame(top_level_windows[i], true);
-    // }
-
-    // XFree(top_level_windows);
-
-    // XUngrabServer(this->CurrentDisplay);
-
-    // XGrabKey(this->CurrentDisplay, XKeysymToKeycode(this->CurrentDisplay, XK_F1), HOTKEY, this->root, True, GrabModeAsync, GrabModeAsync);
 
     this->Config();
     this->DrawBars();
 
-    while (IsRunning)    
+    while (IsRunning)
     {
 
         XEvent e;
@@ -760,8 +914,7 @@ int Manager::Run()
         }
     }
 
-
-    XSync(this->CurrentDisplay, False);		
-	XCloseDisplay(this->CurrentDisplay);
-	return EXIT_SUCCESS;
+    XSync(this->CurrentDisplay, False);
+    XCloseDisplay(this->CurrentDisplay);
+    return EXIT_SUCCESS;
 }

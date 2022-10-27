@@ -52,7 +52,13 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp",
+        "future": "cpp",
+        "iostream": "cpp",
+        "stop_token": "cpp"
     },
     "makefile.launchConfigurations": [
         {

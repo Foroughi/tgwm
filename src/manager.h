@@ -1,12 +1,17 @@
-
+#include <chrono>
+#include <iostream>
+#include <future>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <glog/logging.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <X11/Xatom.h>
 #include "monitor.h"
-#include "drw.h"
+#include "widget.h"
+#include <X11/cursorfont.h>
+#include "fontawesome.h"
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
@@ -25,12 +30,15 @@ private:
     Monitor* SelectedMonitor;
     Client *SelectedClient;
     bool IsRunning;
-    void Config();
-    Drw *draw;
+    void Config();     
+    std::vector<Widget*> Widgets = {};
+    bool IsUpdatingWidgets = False;
 
 public:
     Manager(Display *display);
     ~Manager();
+
+
     void DrawBars();
     void DrawBar(Monitor *mon);
     void Unframe(Window w);
@@ -57,8 +65,11 @@ public:
     Client * GetSelectedClient();
     void MoveSelectedClient(Monitor* mon ,int index);
     void SelectClient(Client *client);
+    void DrawWidgets();
+    void UpdateWidgets();
     void SortAll();
-    void onSelectedTagChanged(int Index);
+    void onSelectedTagChanged(int Index);    
+
 };
 
 #endif
