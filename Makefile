@@ -34,5 +34,5 @@ tgwm: $(HEADERS) $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm -f tgwm $(OBJECTS)
+	rm -f tgwm src/*.o
 
