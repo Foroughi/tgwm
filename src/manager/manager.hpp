@@ -39,6 +39,7 @@ public:
     void OnMapNotify(const XMapEvent &e);
     void OnUnmapNotify(const XUnmapEvent &e);
     void OnConfigureNotify(const XConfigureEvent &e);
+    void OnButtonPress(XButtonPressedEvent &e);
     void reparentAlreadyOpenWindows();
     void OnKeyPress(const XKeyEvent &e);
     void OnMouseEnter(const XCrossingEvent &e);

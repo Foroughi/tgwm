@@ -1,7 +1,7 @@
 
 #ifndef __WIDGET__
 #define __WIDGET__
-
+#include "../util/util.hpp"
 #include <list>
 #include <string>
 #include <functional>
@@ -15,6 +15,8 @@ private:
     std::string Icon;
     int Interval;
     std::string Value = "";
+    bool Hovered = False;
+    Rect MouseRect;
 
 public:
     Widget(std::string name, std::string colo, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int)> clickFunction);
@@ -29,6 +31,12 @@ public:
     void Click(int button);
     std::function<std::string(Widget *)> OnUpdate;
     std::function<void(int)> OnClick;
+
+    Rect GetRect();
+    void SetRect(int x, int y, int w, int h);
+
+    bool GetHoverStatus();
+    void SetHoverStatus(bool status);
 };
 
 #endif

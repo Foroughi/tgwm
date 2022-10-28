@@ -38,6 +38,11 @@ void Manager::Config()
             XChangeProperty(this->CurrentDisplay, frame, atom, XA_CARDINAL, 32,
                             PropModeReplace, (unsigned char *)&opacity, 1L);
 
+            // XSelectInput(
+            //     this->CurrentDisplay,
+            //     frame,
+            //     LeaveWindowMask);
+
             XAddToSaveSet(this->CurrentDisplay, frame);
             // XReparentWindow(this->CurrentDisplay, this->root, frame, 0, 0);
             XMapWindow(this->CurrentDisplay, frame);
@@ -67,7 +72,17 @@ void Manager::Config()
 
         const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, DisplayWidth(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), TOP_BAR_HEIGHT, 0, TOPBAR_BG, TOPBAR_BG);
 
+        // Atom atom = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_OPACITY", False);
+        // uint opacity = 0xCCCCCCCCCCCCCCCCCCCD;
+        // XChangeProperty(this->CurrentDisplay, frame, atom, XA_CARDINAL, 32,
+        //                 PropModeReplace, (unsigned char *)&opacity, 1L);
+
+        // XSelectInput(
+        //     this->CurrentDisplay,
+        //     frame,
+        //     LeaveWindowMask);
         XMapWindow(this->CurrentDisplay, frame);
+        // XAddToSaveSet(this->CurrentDisplay, frame);
 
         auto mon = new Monitor(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), frame,
                                CONFIG::Tags[0]);
@@ -143,7 +158,17 @@ void Manager::DrawBar(Monitor *mon)
 
         if (it->GetName().length() > 0)
         {
-            XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+            if (it->GetHoverStatus())
+            {
+                XftDrawRect(d, &selectedcolor, x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
+                XftDrawString8(d, &bgColor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+            }
+            else
+            {
+                XftDrawRect(d, &bgColor, x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
+                XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+            }
+
             w = TAGGAP * 2 + extents.width;
         }
         else
@@ -154,6 +179,8 @@ void Manager::DrawBar(Monitor *mon)
 
         if (it == mon->GetSelectedTag())
             XftDrawRect(d, &selectedcolor, x, 23, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, 3);
+
+        it->SetRect(x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
 
         x += w;
     }
@@ -208,6 +235,9 @@ void Manager::DrawWidgets()
             XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
         XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
+        //XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+
+        w->SetRect(this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         width += extents.width + 27;
 
@@ -291,7 +321,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     XSelectInput(
         this->CurrentDisplay,
         frame,
-        SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | LeaveWindowMask | EnterWindowMask);
+        SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | LeaveWindowMask);
 
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
@@ -348,17 +378,10 @@ void Manager::OnUnmapNotify(const XUnmapEvent &e)
 {
 
     if (this->SelectedMonitor->FindByWindow(e.window) == NULL)
-    {
-        LOG(INFO) << "Ignore UnmapNotify for non-client window " << e.window;
         return;
-    }
 
     if (e.event == this->root)
-    {
-        LOG(INFO) << "Ignore UnmapNotify for reparented pre-existing window "
-                  << e.window;
         return;
-    }
 
     Unframe(e.window);
 }
@@ -419,6 +442,52 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 {
 }
 
+void Manager::OnButtonPress(XButtonPressedEvent &e)
+{
+    bool ClickGrabbed = False;
+
+    if (!ClickGrabbed)
+    {
+        for (auto mon : this->Monitors)
+        {
+
+            if (e.subwindow == mon->GetTopbar())
+            {
+                for (auto it : mon->GetTags())
+                {
+
+                    if (it->GetHoverStatus())
+                    {
+                        mon->SelectTagByIndex(it->GetIndex());
+                        ClickGrabbed = True;
+                        this->DrawBar(mon);
+                        break;
+                    }
+                }
+            }
+
+            if (ClickGrabbed)
+                break;
+        }
+    }
+
+    if (!ClickGrabbed)
+    {
+        
+        for (auto w : this->Widgets)
+        {
+            Rect rect = w->GetRect();
+              
+            if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+            {
+                LOG(INFO) << "****************************" << rect.x << rect.y;    
+                w->Click(e.button);
+                ClickGrabbed = True;
+            }
+        }
+    }
+}
+
 void Manager::OnKeyPress(const XKeyEvent &e)
 {
 
@@ -426,7 +495,7 @@ void Manager::OnKeyPress(const XKeyEvent &e)
     {
         if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && CLEANMASK(std::get<1>(k)) == CLEANMASK(e.state))
         {
-            std::get<2>(k)(this , e);
+            std::get<2>(k)(this, e);
             break;
         }
     }
@@ -470,6 +539,36 @@ void Manager::OnMotionNotify(XMotionEvent &e)
     }
     else
         this->SelectedMonitor = this->Monitors[0];
+
+    for (auto mon : this->Monitors)
+    {
+
+        if (e.subwindow == mon->GetTopbar())
+        {
+
+            for (auto tag : mon->GetTags())
+            {
+
+                auto rect = tag->GetRect();
+
+                if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+                    tag->SetHoverStatus(True);
+                else
+                    tag->SetHoverStatus(False);
+            }
+
+            this->DrawBar(mon);
+        }
+        else
+        {
+            for (auto tag : mon->GetTags())
+            {
+                tag->SetHoverStatus(False);
+            }
+        }
+
+        this->DrawBar(mon);
+    }
 }
 
 Client *Manager::GetSelectedClient()
@@ -581,7 +680,7 @@ int Manager::Run()
             OnConfigureRequest(e.xconfigurerequest);
             break;
         case ButtonPress:
-            // OnButtonPress(e.xbutton);
+            OnButtonPress(e.xbutton);
             break;
         case ButtonRelease:
             // OnButtonRelease(e.xbutton);

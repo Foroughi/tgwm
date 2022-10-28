@@ -15,6 +15,14 @@ struct Loc
 	int y;
 };
 
+struct Rect
+{
+	int x;
+	int y;
+	int Height;
+	int Width;
+};
+
 void start(char *what);
 std::string exec(const char* cmd);
 std::string ToString(const XEvent &e);

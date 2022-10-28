@@ -39,11 +39,30 @@ void Widget::Update()
 }
 
 std::string Widget::GetValue()
-{    
+{
     return this->Value;
 }
 
 void Widget::Click(int button)
 {
     this->OnClick(button);
+}
+
+Rect Widget::GetRect()
+{
+    return this->MouseRect;
+}
+
+void Widget::SetRect(int x, int y, int w, int h)
+{
+    this->MouseRect = {x, y, w, h};
+}
+
+bool Widget::GetHoverStatus()
+{
+    return this->Hovered;
+}
+void Widget::SetHoverStatus(bool status)
+{
+    this->Hovered = status;
 }
