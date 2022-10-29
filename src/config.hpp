@@ -22,7 +22,10 @@
 #define TAGGAP 5
 #define BORDER_WIDTH 3
 #define HOTKEY Mod4Mask
-
+#define TAGS_HOVERABLE 0
+#define TAGS_CLICKABLE 0
+#define WIDGETS_HOVERABLE 0
+#define WIDGETS_CLICKABLE 0
 #define TOPBAR_FG "#A0A0A0"
 #define TOPBAR_BG 0x000000
 #define TOPBAR_SELECTED_FG "#61afef"
@@ -193,8 +196,8 @@ namespace CONFIG
              manager->Stop();
          }},
 
-        // Mod + F4
-        {XK_F4, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+        // Mod + Q
+        {XK_q, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
              manager->GetSelectedMonitor()->RemoveClient(manager->GetSelectedClient());
              manager->GetSelectedMonitor()->Sort();

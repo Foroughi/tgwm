@@ -235,7 +235,7 @@ void Manager::DrawWidgets()
             XftDrawStringUtf8(d, &selectedcolor, font, this->Monitors[0]->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
         XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
-        //XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+        // XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
         w->SetRect(this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
@@ -446,7 +446,7 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
 {
     bool ClickGrabbed = False;
 
-    if (!ClickGrabbed)
+    if (TAGS_CLICKABLE && !ClickGrabbed)
     {
         for (auto mon : this->Monitors)
         {
@@ -471,18 +471,18 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
         }
     }
 
-    if (!ClickGrabbed)
+    if (WIDGETS_CLICKABLE && !ClickGrabbed)
     {
-        
+
         for (auto w : this->Widgets)
         {
             Rect rect = w->GetRect();
-              
+
             if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
             {
-                LOG(INFO) << "****************************" << rect.x << rect.y;    
                 w->Click(e.button);
                 ClickGrabbed = True;
+                break;
             }
         }
     }
@@ -540,34 +540,37 @@ void Manager::OnMotionNotify(XMotionEvent &e)
     else
         this->SelectedMonitor = this->Monitors[0];
 
-    for (auto mon : this->Monitors)
+    if (TAGS_HOVERABLE)
     {
-
-        if (e.subwindow == mon->GetTopbar())
+        for (auto mon : this->Monitors)
         {
 
-            for (auto tag : mon->GetTags())
+            if (e.subwindow == mon->GetTopbar())
             {
 
-                auto rect = tag->GetRect();
+                for (auto tag : mon->GetTags())
+                {
 
-                if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
-                    tag->SetHoverStatus(True);
-                else
+                    auto rect = tag->GetRect();
+
+                    if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+                        tag->SetHoverStatus(True);
+                    else
+                        tag->SetHoverStatus(False);
+                }
+
+                this->DrawBar(mon);
+            }
+            else
+            {
+                for (auto tag : mon->GetTags())
+                {
                     tag->SetHoverStatus(False);
+                }
             }
 
             this->DrawBar(mon);
         }
-        else
-        {
-            for (auto tag : mon->GetTags())
-            {
-                tag->SetHoverStatus(False);
-            }
-        }
-
-        this->DrawBar(mon);
     }
 }
 
