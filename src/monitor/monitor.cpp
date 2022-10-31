@@ -162,13 +162,14 @@ void Monitor::SetLayout(Layouts layout)
 }
 
 
+
 void Monitor::RemoveClient(Client *client)
 {
 
     if (!client)
         return;
 
-    client->Hide();
+    //client->Hide();
 
     int i = 0;
     for (auto it : this->Clients)
@@ -176,6 +177,7 @@ void Monitor::RemoveClient(Client *client)
         if (it == client)
         {
             this->Clients.erase(this->Clients.begin() + i);
+            delete client;
             return;
         }
 

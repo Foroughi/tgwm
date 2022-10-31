@@ -47,8 +47,8 @@ public:
     void RemoveClient(Client * client);
     void Sort();
     Client* FindByWindow(Window win);
-    Client *FindByFrame(Window win);
-    Client *FindByWinOrFrame(Window win);
+    Client* FindByFrame(Window win);
+    Client* FindByWinOrFrame(Window win);
     void MoveSelectedClient(int index);
     void AddClient(Client * c);
     void SetLayout(Layouts layout);

@@ -20,7 +20,8 @@ private:
     void Config();     
     std::vector<Widget*> Widgets = {};
     bool IsUpdatingWidgets = False;
-    Atom netatom[NetLast];
+    Atom NET_Atom[WMLast];
+    Atom WM_Atom[NetLast];
 
 public:
     Manager(Display *display);
@@ -52,7 +53,7 @@ public:
     Monitor* FindMonitorByClient(Client* client);
     static int OnXError(Display *display, XErrorEvent *e);
     void onFocusIn(XFocusChangeEvent &e);
-    void OnMotionNotify(XMotionEvent &e);
+    void OnMotionNotify(XMotionEvent &e);    
     Client * GetSelectedClient();
     void MoveSelectedClient(Monitor* mon ,int index);
     void SelectClient(Client *client);
@@ -60,7 +61,12 @@ public:
     void UpdateWidgets();
     void SortAll();
     void onSelectedTagChanged(int Index);    
+    Display* GetDisplay();
     void OnClientMessage(XClientMessageEvent &e);
+    int SendEvent(Client *c, Atom proto);
+    Window GetRoot();
+    Atom GetNETAtom(int atom);
+    Atom GetWMAtom(int atom);
     
 };
 

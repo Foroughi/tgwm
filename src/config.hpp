@@ -6,6 +6,7 @@
 #include <X11/Xutil.h>
 #include <vector>
 #include <string>
+#include <cstring>
 #include "tuple"
 #include "./tag/tag.hpp"
 #include "./widget/widget.hpp"
@@ -13,6 +14,7 @@
 #include "./monitor/monitor.hpp"
 #include "./manager/manager.hpp"
 #include "./util/util.hpp"
+#include <glog/logging.h>
 
 /*=====================================================================================================*/
 /*=============================================== Configs =============================================*/
@@ -199,8 +201,8 @@ namespace CONFIG
         // Mod + Esc
         {XK_Escape, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->GetSelectedMonitor()->RemoveClient(manager->GetSelectedClient());
-             manager->GetSelectedMonitor()->Sort();
+             if (manager->GetSelectedClient() && manager->GetSelectedClient()->GetWindow() != manager->GetRoot())
+                 manager->SendEvent(manager->GetSelectedClient(), manager->GetWMAtom(WMDelete));
          }},
 
         // Mod + Ctrl + 1

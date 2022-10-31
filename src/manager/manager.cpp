@@ -252,19 +252,30 @@ void Manager::Unframe(Window w)
 
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
+    if (!c)
+    {
+
+        return;
+    }
+
     const Window frame = c->GetFrame();
 
-    XUnmapWindow(this->CurrentDisplay, frame);
-    XReparentWindow(this->CurrentDisplay, w, this->root, 0, 0);
-    XRemoveFromSaveSet(this->CurrentDisplay, w);
-    XDestroyWindow(this->CurrentDisplay, frame);
+    const Window win = c->GetWindow();
 
-    this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
-
-    this->SelectedMonitor->Sort();
-
-    this->Update_NET_CLIENT_LIST();
     LOG(INFO) << "Unframed window " << w << " [" << frame << "]";
+
+    XUnmapWindow(this->CurrentDisplay, frame);
+
+    XReparentWindow(this->CurrentDisplay, w, this->root, 0, 0);
+
+    XRemoveFromSaveSet(this->CurrentDisplay, w);
+
+    XDestroyWindow(this->CurrentDisplay, win);
+}
+
+Display *Manager::GetDisplay()
+{
+    return this->CurrentDisplay;
 }
 
 void Manager::OnClientMessage(XClientMessageEvent &e)
@@ -278,7 +289,7 @@ void Manager::OnClientMessage(XClientMessageEvent &e)
         if (!c)
             continue;
 
-        else if (e.message_type == netatom[NetActiveWindow])
+        else if (e.message_type == NET_Atom[NetActiveWindow])
         {
 
             if (this->SelectedClient != c)
@@ -393,7 +404,26 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e) {}
 
-void Manager::OnDestroyNotify(const XDestroyWindowEvent &e) {}
+void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
+{
+
+    Client *c = this->SelectedMonitor->FindByWindow(e.window);
+
+    if(!c)
+        return;
+
+    const Window frame = c->GetFrame();
+
+    const Window win = c->GetWindow();
+
+    LOG(INFO) << "Destroying window " << win << " [" << frame << "]";
+
+    this->SelectedMonitor->RemoveClient(c);
+
+    this->SelectedMonitor->Sort();
+
+    this->Update_NET_CLIENT_LIST();
+}
 
 void Manager::OnReparentNotify(const XReparentEvent &e) {}
 
@@ -599,6 +629,16 @@ void Manager::OnMotionNotify(XMotionEvent &e)
     }
 }
 
+Atom Manager::GetNETAtom(int atom)
+{
+    return this->NET_Atom[atom];
+}
+
+Atom Manager::GetWMAtom(int atom)
+{
+    return this->WM_Atom[atom];
+}
+
 Client *Manager::GetSelectedClient()
 {
     return this->SelectedClient;
@@ -645,6 +685,11 @@ Monitor *Manager::GetMonitor(int index)
     return this->Monitors[index];
 }
 
+Window Manager::GetRoot()
+{
+    return this->root;
+}
+
 void Manager::Stop()
 {
     this->IsRunning = false;
@@ -652,34 +697,70 @@ void Manager::Stop()
 
 void Manager::Update_NET_CLIENT_LIST()
 {
-    XDeleteProperty(this->CurrentDisplay, root, netatom[NetClientList]);
+    XDeleteProperty(this->CurrentDisplay, root, NET_Atom[NetClientList]);
     for (auto mon : this->Monitors)
         for (auto client : mon->GetClients(-1))
         {
             auto c = client->GetWindow();
 
-            XChangeProperty(this->CurrentDisplay, root, netatom[NetClientList],
+            XChangeProperty(this->CurrentDisplay, root, NET_Atom[NetClientList],
                             XA_WINDOW, 32, PropModeAppend,
                             (unsigned char *)&c, 1);
         }
 }
 
+int Manager::SendEvent(Client *c, Atom proto)
+{
+    int n;
+    Atom *protocols;
+    int exists = 0;
+
+    Window win = c->GetWindow();
+
+    XEvent ev;
+
+    if (XGetWMProtocols(this->CurrentDisplay, win, &protocols, &n))
+    {
+        while (!exists && n--)
+            exists = protocols[n] == proto;
+        XFree(protocols);
+    }
+
+    if (exists)
+    {
+
+        ev.type = ClientMessage;
+        ev.xclient.window = win;
+        ev.xclient.message_type = this->WM_Atom[WMProtocols];
+        ev.xclient.format = 32;
+        ev.xclient.data.l[0] = proto;
+        ev.xclient.data.l[1] = CurrentTime;
+        XSendEvent(this->CurrentDisplay, win, False, NoEventMask, &ev);
+    }
+    return exists;
+}
+
 int Manager::Run()
 {
 
-    this->netatom[NetActiveWindow] = XInternAtom(this->CurrentDisplay, "_NET_ACTIVE_WINDOW", False);
-    this->netatom[NetSupported] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTED", False);
-    this->netatom[NetWMName] = XInternAtom(this->CurrentDisplay, "_NET_WM_NAME", False);
-    this->netatom[NetWMState] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE", False);
-    this->netatom[NetWMCheck] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTING_WM_CHECK", False);
-    this->netatom[NetWMFullscreen] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE_FULLSCREEN", False);
-    this->netatom[NetWMWindowType] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE", False);
-    this->netatom[NetWMWindowTypeDialog] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-    this->netatom[NetClientList] = XInternAtom(this->CurrentDisplay, "_NET_CLIENT_LIST", False);
+    this->NET_Atom[NetActiveWindow] = XInternAtom(this->CurrentDisplay, "_NET_ACTIVE_WINDOW", False);
+    this->NET_Atom[NetSupported] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTED", False);
+    this->NET_Atom[NetWMName] = XInternAtom(this->CurrentDisplay, "_NET_WM_NAME", False);
+    this->NET_Atom[NetWMState] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE", False);
+    this->NET_Atom[NetWMCheck] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTING_WM_CHECK", False);
+    this->NET_Atom[NetWMFullscreen] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+    this->NET_Atom[NetWMWindowType] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE", False);
+    this->NET_Atom[NetWMWindowTypeDialog] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+    this->NET_Atom[NetClientList] = XInternAtom(this->CurrentDisplay, "_NET_CLIENT_LIST", False);
 
-    XChangeProperty(this->CurrentDisplay, this->root, this->netatom[NetSupported], XA_ATOM, 32,
-                    PropModeReplace, (unsigned char *)netatom, NetLast);
-    XDeleteProperty(this->CurrentDisplay, this->root, this->netatom[NetClientList]);
+    this->WM_Atom[WMProtocols] = XInternAtom(this->CurrentDisplay, "WM_PROTOCOLS", False);
+    this->WM_Atom[WMDelete] = XInternAtom(this->CurrentDisplay, "WM_DELETE_WINDOW", False);
+    this->WM_Atom[WMState] = XInternAtom(this->CurrentDisplay, "WM_STATE", False);
+    this->WM_Atom[WMTakeFocus] = XInternAtom(this->CurrentDisplay, "WM_TAKE_FOCUS", False);
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetSupported], XA_ATOM, 32,
+                    PropModeReplace, (unsigned char *)NET_Atom, NetLast);
+    XDeleteProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetClientList]);
 
     XSetWindowAttributes wa;
 

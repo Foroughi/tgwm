@@ -43,6 +43,15 @@ enum
 	NetLast
 };
 
+enum
+{
+	WMProtocols,
+	WMDelete,
+	WMState,
+	WMTakeFocus,
+	WMLast
+}; 
+
 enum Layouts
 {
 	Layouts_Horizontal,
