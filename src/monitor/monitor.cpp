@@ -147,6 +147,7 @@ void Monitor::AddClient(Display *display, Window frame, Window win, int tagIndex
 {
     auto c = new Client(display, this->GetLoc(), frame, win, tagIndex);
     this->Clients.push_back(c);
+    
 }
 
 void Monitor::AddClient(Client *c)

@@ -190,14 +190,14 @@ namespace CONFIG
     /*=====================================================================================================*/
     inline std::vector<std::tuple<int, int, std::function<void(Manager *, const XKeyEvent)>>> Keys = {
 
-        // Mod + Ctrl + F4
-        {XK_F4, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
+        // Mod + Ctrl + Esc
+        {XK_Escape, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
              manager->Stop();
          }},
 
-        // Mod + Q
-        {XK_q, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+        // Mod + Esc
+        {XK_Escape, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
              manager->GetSelectedMonitor()->RemoveClient(manager->GetSelectedClient());
              manager->GetSelectedMonitor()->Sort();
@@ -303,6 +303,12 @@ namespace CONFIG
         {XK_Pause, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
              start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+         }},
+
+        // Mod + Tab
+        {XK_Tab, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+             start("rofi -no-lazy-grab -show window -config ~/.config/rofi/config.rasi");
          }},
 
         // Mod + Ctrl + Print

@@ -20,18 +20,18 @@ private:
     void Config();     
     std::vector<Widget*> Widgets = {};
     bool IsUpdatingWidgets = False;
+    Atom netatom[NetLast];
 
 public:
     Manager(Display *display);
     ~Manager();
 
-
+    void Update_NET_CLIENT_LIST();
     void DrawBars();
     void DrawBar(Monitor *mon);
     void Unframe(Window w);
     void Frame(Window w, bool was_created_before_window_manager);
     void OnConfigureRequest(const XConfigureRequestEvent &e);
-    int OnXError(XErrorEvent *e);
     void OnMapRequest(const XMapRequestEvent &e);
     void OnCreateNotify(const XCreateWindowEvent &e);
     void OnDestroyNotify(const XDestroyWindowEvent &e);
@@ -60,7 +60,8 @@ public:
     void UpdateWidgets();
     void SortAll();
     void onSelectedTagChanged(int Index);    
-
+    void OnClientMessage(XClientMessageEvent &e);
+    
 };
 
 #endif

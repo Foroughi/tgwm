@@ -263,7 +263,30 @@ void Manager::Unframe(Window w)
 
     this->SelectedMonitor->Sort();
 
+    this->Update_NET_CLIENT_LIST();
     LOG(INFO) << "Unframed window " << w << " [" << frame << "]";
+}
+
+void Manager::OnClientMessage(XClientMessageEvent &e)
+{
+
+    for (auto mon : this->Monitors)
+    {
+
+        Client *c = mon->FindByWindow(e.window);
+
+        if (!c)
+            continue;
+
+        else if (e.message_type == netatom[NetActiveWindow])
+        {
+
+            if (this->SelectedClient != c)
+            {
+                mon->SelectTagByIndex(c->GetTagIndex());
+            }
+        }
+    }
 }
 
 int updatenumlockmask(Display *dpy)
@@ -330,6 +353,8 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     this->SelectedMonitor->AddClient(this->CurrentDisplay, frame, w, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
     this->SelectedMonitor->Sort();
+
+    this->Update_NET_CLIENT_LIST();
 
     LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
@@ -625,8 +650,36 @@ void Manager::Stop()
     this->IsRunning = false;
 }
 
+void Manager::Update_NET_CLIENT_LIST()
+{
+    XDeleteProperty(this->CurrentDisplay, root, netatom[NetClientList]);
+    for (auto mon : this->Monitors)
+        for (auto client : mon->GetClients(-1))
+        {
+            auto c = client->GetWindow();
+
+            XChangeProperty(this->CurrentDisplay, root, netatom[NetClientList],
+                            XA_WINDOW, 32, PropModeAppend,
+                            (unsigned char *)&c, 1);
+        }
+}
+
 int Manager::Run()
 {
+
+    this->netatom[NetActiveWindow] = XInternAtom(this->CurrentDisplay, "_NET_ACTIVE_WINDOW", False);
+    this->netatom[NetSupported] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTED", False);
+    this->netatom[NetWMName] = XInternAtom(this->CurrentDisplay, "_NET_WM_NAME", False);
+    this->netatom[NetWMState] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE", False);
+    this->netatom[NetWMCheck] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTING_WM_CHECK", False);
+    this->netatom[NetWMFullscreen] = XInternAtom(this->CurrentDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+    this->netatom[NetWMWindowType] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE", False);
+    this->netatom[NetWMWindowTypeDialog] = XInternAtom(this->CurrentDisplay, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+    this->netatom[NetClientList] = XInternAtom(this->CurrentDisplay, "_NET_CLIENT_LIST", False);
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->netatom[NetSupported], XA_ATOM, 32,
+                    PropModeReplace, (unsigned char *)netatom, NetLast);
+    XDeleteProperty(this->CurrentDisplay, this->root, this->netatom[NetClientList]);
 
     XSetWindowAttributes wa;
 
@@ -658,6 +711,9 @@ int Manager::Run()
 
         switch (e.type)
         {
+        case ClientMessage:
+            OnClientMessage(e.xclient);
+            break;
         case CreateNotify:
             OnCreateNotify(e.xcreatewindow);
             break;
