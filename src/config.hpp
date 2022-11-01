@@ -27,7 +27,7 @@
 #define TAGS_HOVERABLE 0
 #define TAGS_CLICKABLE 0
 #define WIDGETS_HOVERABLE 0
-#define WIDGETS_CLICKABLE 0
+#define WIDGETS_CLICKABLE 1
 #define TOPBAR_FG "#A0A0A0"
 #define TOPBAR_BG 0x000000
 #define TOPBAR_SELECTED_FG "#61afef"
@@ -172,7 +172,9 @@ namespace CONFIG
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
             },
-            [](int button) {}),
+            [](int button) {
+                start("kitty htop");
+            }),
 
         // Memory Widget
         new Widget(
