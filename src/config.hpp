@@ -220,7 +220,7 @@ namespace CONFIG
              }
 
              LOG(INFO) << "======================================================";
-             // Log(str);
+             //Log(str);
          }},
 
         // Mod + Ctrl + Esc

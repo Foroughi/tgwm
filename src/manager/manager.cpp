@@ -419,6 +419,7 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
     LOG(INFO) << "Destroying window " << win << " [" << frame << "]";
 
     this->SelectedMonitor->RemoveClient(c);
+    delete c;
 
     this->SelectedMonitor->Sort();
 
