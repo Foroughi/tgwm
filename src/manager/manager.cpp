@@ -667,6 +667,7 @@ void Manager::SelectClient(Client *client)
 void Manager::MoveSelectedClient(Monitor *mon, int index)
 {
 
+
     if (!this->SelectedClient)
         return;
 
@@ -677,7 +678,16 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
             it->AddClient(this->SelectedClient);
     }
 
+    
+
     this->SelectedClient->SetTagIndex(index);
+
+    
+}
+
+std::vector<Monitor *> Manager::GetMonitors()
+{
+    return this->Monitors;
 }
 
 Monitor *Manager::GetMonitor(int index)

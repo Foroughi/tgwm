@@ -51,6 +51,7 @@ public:
     int Run();
     Client * FindClientByWin(Window w);
     Monitor* FindMonitorByClient(Client* client);
+    std::vector<Monitor *> GetMonitors();
     static int OnXError(Display *display, XErrorEvent *e);
     void onFocusIn(XFocusChangeEvent &e);
     void OnMotionNotify(XMotionEvent &e);    

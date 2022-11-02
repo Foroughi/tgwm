@@ -24,7 +24,7 @@
 #define TAGGAP 5
 #define BORDER_WIDTH 3
 #define HOTKEY Mod4Mask
-#define TAGS_HOVERABLE 0
+#define TAGS_HOVERABLE 0 
 #define TAGS_CLICKABLE 0
 #define WIDGETS_HOVERABLE 0
 #define WIDGETS_CLICKABLE 1
@@ -172,7 +172,8 @@ namespace CONFIG
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
             },
-            [](int button) {
+            [](int button)
+            {
                 start("kitty htop");
             }),
 
@@ -193,6 +194,34 @@ namespace CONFIG
     /*=============================================== Bindings ============================================*/
     /*=====================================================================================================*/
     inline std::vector<std::tuple<int, int, std::function<void(Manager *, const XKeyEvent)>>> Keys = {
+
+        // Mod + F1
+        {XK_F1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+             
+
+             LOG(INFO) << "======================================================";
+
+             for (auto mon : manager->GetMonitors())
+             {
+                 LOG(INFO) << "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
+
+                 LOG(INFO) << "Tags :\n";
+                 for (auto it : mon->GetTags())
+                 {
+                     LOG(INFO) << it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
+                 }
+
+                 LOG(INFO) << "Clients :\n";
+                 for (auto it : mon->GetClients(-1))
+                 {
+                     LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
+                 }
+             }
+
+             LOG(INFO) << "======================================================";
+             // Log(str);
+         }},
 
         // Mod + Ctrl + Esc
         {XK_Escape, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
