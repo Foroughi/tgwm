@@ -52,6 +52,7 @@ public:
     Client * FindClientByWin(Window w);
     Monitor* FindMonitorByClient(Client* client);
     std::vector<Monitor *> GetMonitors();
+    Atom GetNETAtomByClient(Window, Atom);
     static int OnXError(Display *display, XErrorEvent *e);
     void onFocusIn(XFocusChangeEvent &e);
     void OnMotionNotify(XMotionEvent &e);    

@@ -264,7 +264,6 @@ void Manager::Unframe(Window w)
 
     this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
     this->SelectedMonitor->Sort();
-
 }
 
 Display *Manager::GetDisplay()
@@ -329,10 +328,37 @@ void grabkeys(Display *dpy, Window win)
     }
 }
 
+Atom Manager::GetNETAtomByClient(Window w, Atom prop)
+{
+    int di;
+    unsigned long dl;
+    unsigned char *p = NULL;
+    Atom da, atom = None;
 
+    if (XGetWindowProperty(this->CurrentDisplay, w, prop, 0, 65536, False, XA_ATOM,
+                           &da, &di, &dl, &dl, &p) == Success &&
+        p)
+    {
+        atom = *(Atom *)p;  
+        XFree(p);
+    }
+    return atom;
+}
 
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
+    // Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
+
+    // LOG(INFO) << "==============================";
+    // LOG(INFO) << wtype;
+    // LOG(INFO) << this->GetNETAtom(NetWMWindowType);
+    // LOG(INFO) << this->GetNETAtom(NetWMWindowTypeDialog);
+
+    // if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
+    // {
+
+    //     return;
+    // }
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
@@ -346,9 +372,8 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         }
     }
 
-    if(x_window_attrs.override_redirect)
+    if (x_window_attrs.override_redirect)
         return;
-    
 
     const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
 
@@ -564,7 +589,7 @@ int Manager::OnXError(Display *display, XErrorEvent *e)
     char error_text[MAX_ERROR_TEXT_LENGTH];
     XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
     LOG(INFO) << error_text;
-    Log(error_text);
+    // Log(error_text);
     return 0;
 }
 
