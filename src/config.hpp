@@ -24,7 +24,7 @@
 #define TAGGAP 5
 #define BORDER_WIDTH 3
 #define HOTKEY Mod4Mask
-#define TAGS_HOVERABLE 0 
+#define TAGS_HOVERABLE 0
 #define TAGS_CLICKABLE 0
 #define WIDGETS_HOVERABLE 0
 #define WIDGETS_CLICKABLE 1
@@ -64,6 +64,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 #define ICON_FA_VOLUME_LOW "\xef\x80\xa7"
 #define ICON_FA_VOLUME_OFF "\xef\x80\xa6"
 #define ICON_FA_VOLUME_XMARK "\xef\x9a\xa9"
+#define ICON_FA_POWER_OFF "\xef\x80\x91"
 
 namespace CONFIG
 {
@@ -97,6 +98,7 @@ namespace CONFIG
                 "#c8c874",
                 "#83A598",
                 "#3d4059",
+                "#e0e0e0",
 
     };
 
@@ -116,6 +118,18 @@ namespace CONFIG
     /*================================================ Widgets ============================================*/
     /*=====================================================================================================*/
     inline std::vector<Widget *> Widgets = {
+
+        // System Widget
+        new Widget(
+            "system", Colors[11], ICON_FA_POWER_OFF,
+            [](Widget *w)
+            {
+                return "";
+            },
+            [](int button)
+            {
+                start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
+            }),
 
         // Time Widget
         new Widget(
@@ -163,7 +177,11 @@ namespace CONFIG
             "network", Colors[3], ICON_FA_WIFI,
             [](Widget *w)
             { return ""; },
-            [](int button) {}),
+            [](int button) {
+
+                start("nm-connection-editor");
+
+            }),
 
         // Cpu Widget
         new Widget(
@@ -198,8 +216,6 @@ namespace CONFIG
         // Mod + F1
         {XK_F1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             
-
              LOG(INFO) << "======================================================";
 
              for (auto mon : manager->GetMonitors())
@@ -220,7 +236,7 @@ namespace CONFIG
              }
 
              LOG(INFO) << "======================================================";
-             //Log(str);
+             // Log(str);
          }},
 
         // Mod + Ctrl + Esc
@@ -354,6 +370,12 @@ namespace CONFIG
         {XK_Print, None, [](Manager *manager, const XKeyEvent &e)
          {
              start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
+         }},
+
+        // Mod + Enter
+        {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+             start("kitty");
          }}
 
     };
