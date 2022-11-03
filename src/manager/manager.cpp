@@ -253,24 +253,18 @@ void Manager::Unframe(Window w)
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
     if (!c)
-    {
-
         return;
-    }
 
     const Window frame = c->GetFrame();
 
-    const Window win = c->GetWindow();
-
-    LOG(INFO) << "Unframed window " << w << " [" << frame << "]";
-
     XUnmapWindow(this->CurrentDisplay, frame);
-
     XReparentWindow(this->CurrentDisplay, w, this->root, 0, 0);
-
     XRemoveFromSaveSet(this->CurrentDisplay, w);
+    XDestroyWindow(this->CurrentDisplay, frame);
 
-    XDestroyWindow(this->CurrentDisplay, win);
+    this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
+    this->SelectedMonitor->Sort();
+
 }
 
 Display *Manager::GetDisplay()
@@ -335,6 +329,8 @@ void grabkeys(Display *dpy, Window win)
     }
 }
 
+
+
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
 
@@ -349,6 +345,10 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
             return;
         }
     }
+
+    if(x_window_attrs.override_redirect)
+        return;
+    
 
     const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
 
@@ -409,7 +409,7 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 
     Client *c = this->SelectedMonitor->FindByWindow(e.window);
 
-    if(!c)
+    if (!c)
         return;
 
     const Window frame = c->GetFrame();
@@ -668,7 +668,6 @@ void Manager::SelectClient(Client *client)
 void Manager::MoveSelectedClient(Monitor *mon, int index)
 {
 
-
     if (!this->SelectedClient)
         return;
 
@@ -679,11 +678,7 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
             it->AddClient(this->SelectedClient);
     }
 
-    
-
     this->SelectedClient->SetTagIndex(index);
-
-    
 }
 
 std::vector<Monitor *> Manager::GetMonitors()
