@@ -48,6 +48,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 /*================================================ Fonts ==============================================*/
 /*=====================================================================================================*/
 #define TOPBAR_FONT "monospace-7:style=Bold"
+#define TOPBAR_FONT_SUB "monospace-4:style=Bold"
 #define ICON_FONT "Font Awesome 6 Free:size=7:style=Solid"
 
 /*=====================================================================================================*/

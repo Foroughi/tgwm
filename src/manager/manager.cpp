@@ -135,6 +135,7 @@ void Manager::DrawBar(Monitor *mon)
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
     auto iconfont = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), ICON_FONT);
+    auto font_sub = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT_SUB);
 
     auto d = XftDrawCreate(this->CurrentDisplay, mon->GetTopbar(), DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)));
 
@@ -153,36 +154,57 @@ void Manager::DrawBar(Monitor *mon)
     int w = 0;
     for (auto it : mon->GetTags())
     {
-        XGlyphInfo extents;
-        XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)it->GetName().data(), it->GetName().length(), &extents);
+
+        w = TAGGAP;
+
+        if (it->GetIcon().length() > 0)
+        {
+
+            XGlyphInfo iconextents;
+            XftTextExtentsUtf8(this->CurrentDisplay, iconfont, (FcChar8 *)it->GetIcon().data(), 3, &iconextents);
+
+            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, iconfont, x + w, 18, (const FcChar8 *)it->GetIcon().data(), 3);
+
+            w += iconextents.width;
+        }
 
         if (it->GetName().length() > 0)
         {
+
+            XGlyphInfo extents;
+            XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)it->GetName().data(), it->GetName().length(), &extents);
+
             if (it->GetHoverStatus())
             {
-                XftDrawRect(d, &selectedcolor, x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
-                XftDrawString8(d, &bgColor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+                XftDrawRect(d, &selectedcolor, x, 0, extents.width + (TAGGAP * 2), TOP_BAR_HEIGHT);
+                XftDrawString8(d, &bgColor, font, x + w , 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
             }
             else
             {
-                XftDrawRect(d, &bgColor, x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
-                XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + TAGGAP, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+                XftDrawRect(d, &bgColor, x, 0, extents.width + (TAGGAP * 2), TOP_BAR_HEIGHT);
+                XftDrawString8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font, x + w, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
             }
 
-            w = TAGGAP * 2 + extents.width;
+            w += extents.width;
         }
-        else
+
+        if (mon->GetClients(it->GetIndex()).size() > 0)
         {
-            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, iconfont, x, 18, (const FcChar8 *)ICON_FA_COMPUTER, 3);
-            w = TAGGAP * 2 + 15;
+            std::string clientCountStr = std::to_string(mon->GetClients(it->GetIndex()).size());
+
+            XGlyphInfo subextents;
+            XftTextExtentsUtf8(this->CurrentDisplay, font_sub, (FcChar8 *)clientCountStr.data(), clientCountStr.length(), &subextents);
+
+            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font_sub, x + w + 5 , 13, (FcChar8 *)clientCountStr.c_str(), clientCountStr.length());
+            w += subextents.width + 3;
         }
 
         if (it == mon->GetSelectedTag())
-            XftDrawRect(d, &selectedcolor, x, 23, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, 3);
+            XftDrawRect(d, &selectedcolor, x, 23, w + TAGGAP, 3);
 
-        it->SetRect(x, 0, (it->GetName().length() > 0 ? extents.width + TAGGAP : 15) + TAGGAP, TOP_BAR_HEIGHT);
+        it->SetRect(x, 0, x + w + TAGGAP, TOP_BAR_HEIGHT);
 
-        x += w;
+        x += w + GAP;
     }
 }
 
@@ -264,6 +286,7 @@ void Manager::Unframe(Window w)
 
     this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
     this->SelectedMonitor->Sort();
+    this->DrawBars();
 }
 
 Display *Manager::GetDisplay()
@@ -339,7 +362,7 @@ Atom Manager::GetNETAtomByClient(Window w, Atom prop)
                            &da, &di, &dl, &dl, &p) == Success &&
         p)
     {
-        atom = *(Atom *)p;  
+        atom = *(Atom *)p;
         XFree(p);
     }
     return atom;
@@ -391,6 +414,8 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     this->SelectedMonitor->Sort();
 
     this->Update_NET_CLIENT_LIST();
+
+    this->DrawBars();
 
     LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
