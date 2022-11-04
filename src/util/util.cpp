@@ -110,7 +110,7 @@ std::string GetDate()
 
     auto c = std::ctime(&time);
 
-    return std::string(c).substr(0, 11);
+    return std::string(c).substr(0, 3) + ", " + std::string(c).substr(4, 3) + " " + std::string(c).substr(9, 2);
 }
 
 
