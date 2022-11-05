@@ -178,10 +178,9 @@ namespace CONFIG
             "network", Colors[3], ICON_FA_WIFI,
             [](Widget *w)
             { return ""; },
-            [](int button) {
-
+            [](int button)
+            {
                 start("nm-connection-editor");
-
             }),
 
         // Cpu Widget

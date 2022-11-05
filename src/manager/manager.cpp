@@ -177,7 +177,7 @@ void Manager::DrawBar(Monitor *mon)
             if (it->GetHoverStatus())
             {
                 XftDrawRect(d, &selectedcolor, x, 0, extents.width + (TAGGAP * 2), TOP_BAR_HEIGHT);
-                XftDrawString8(d, &bgColor, font, x + w , 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
+                XftDrawString8(d, &bgColor, font, x + w, 18, (FcChar8 *)it->GetName().c_str(), it->GetName().length());
             }
             else
             {
@@ -195,7 +195,7 @@ void Manager::DrawBar(Monitor *mon)
             XGlyphInfo subextents;
             XftTextExtentsUtf8(this->CurrentDisplay, font_sub, (FcChar8 *)clientCountStr.data(), clientCountStr.length(), &subextents);
 
-            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font_sub, x + w + 5 , 13, (FcChar8 *)clientCountStr.c_str(), clientCountStr.length());
+            XftDrawStringUtf8(d, it == mon->GetSelectedTag() ? &selectedcolor : &normalcolor, font_sub, x + w + 5, 13, (FcChar8 *)clientCountStr.c_str(), clientCountStr.length());
             w += subextents.width + 3;
         }
 
@@ -271,7 +271,7 @@ void Manager::DrawWidgets()
 
 void Manager::Unframe(Window w)
 {
-
+    
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
     if (!c)
@@ -370,18 +370,18 @@ Atom Manager::GetNETAtomByClient(Window w, Atom prop)
 
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
-    // Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
 
-    // LOG(INFO) << "==============================";
-    // LOG(INFO) << wtype;
-    // LOG(INFO) << this->GetNETAtom(NetWMWindowType);
-    // LOG(INFO) << this->GetNETAtom(NetWMWindowTypeDialog);
+    
 
-    // if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
-    // {
+    Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
 
-    //     return;
-    // }
+    if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
+    {
+        // a modal is being opened. That mean we dont consider it as a client.
+        // We only make it sure it will be shown in the middle of its own parent
+        
+        return;
+    }
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
@@ -420,8 +420,46 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
 
+Client *Manager::FindClientByWin(Window win)
+{
+    for (auto it : this->Monitors)
+    {
+        auto client = it->FindByWinOrFrame(win);
+
+        if (client)
+        {
+            return client;
+        }
+    }
+
+    return NULL;
+}
+
 void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 {
+
+    Atom wtype = this->GetNETAtomByClient(e.window, this->GetNETAtom(NetWMWindowType));
+
+    if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
+    {
+
+        int x = this->GetSelectedClient()->GetLocation().x;
+        int y = this->GetSelectedClient()->GetLocation().y;        
+
+        x += this->GetSelectedClient()->GetSize().x / 2 - (e.width / 2);
+        y += this->GetSelectedClient()->GetSize().y / 2 - (e.height / 2);
+
+        if(x < this->GetSelectedMonitor()->GetLoc().x)
+            x = this->GetSelectedMonitor()->GetLoc().x;
+
+        if(y < this->GetSelectedMonitor()->GetLoc().y)
+            y = this->GetSelectedMonitor()->GetLoc().y;
+
+        XMoveWindow(this->CurrentDisplay, e.window, x, y);
+        
+
+        return;
+    }
 
     XWindowChanges changes;
     changes.x = e.x;
@@ -447,12 +485,14 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 }
 
 void Manager::OnMapRequest(const XMapRequestEvent &e)
-{
+{    
     Frame(e.window, false);
     XMapWindow(this->CurrentDisplay, e.window);
 }
 
-void Manager::OnCreateNotify(const XCreateWindowEvent &e) {}
+void Manager::OnCreateNotify(const XCreateWindowEvent &e) {
+    
+}
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 {
@@ -476,7 +516,9 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
     this->Update_NET_CLIENT_LIST();
 }
 
-void Manager::OnReparentNotify(const XReparentEvent &e) {}
+void Manager::OnReparentNotify(const XReparentEvent &e) {
+    
+}
 
 void Manager::OnMapNotify(const XMapEvent &e) {}
 

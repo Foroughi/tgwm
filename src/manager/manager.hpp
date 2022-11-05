@@ -20,8 +20,8 @@ private:
     void Config();     
     std::vector<Widget*> Widgets = {};
     bool IsUpdatingWidgets = False;
-    Atom NET_Atom[WMLast];
-    Atom WM_Atom[NetLast];
+    Atom NET_Atom[NetLast];
+    Atom WM_Atom[WMLast];
 
 public:
     Manager(Display *display);
@@ -48,9 +48,7 @@ public:
     Monitor* GetSelectedMonitor();
     Monitor* GetMonitor(int index);
     void Stop();
-    int Run();
-    Client * FindClientByWin(Window w);
-    Monitor* FindMonitorByClient(Client* client);
+    int Run();        
     std::vector<Monitor *> GetMonitors();
     Atom GetNETAtomByClient(Window, Atom);
     static int OnXError(Display *display, XErrorEvent *e);
@@ -69,6 +67,8 @@ public:
     Window GetRoot();
     Atom GetNETAtom(int atom);
     Atom GetWMAtom(int atom);
+    Client* FindClientByWin(Window win);
+
     
 };
 
