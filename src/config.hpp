@@ -225,11 +225,11 @@ namespace CONFIG
                  LOG(INFO) << "Tags :\n";
                  for (auto it : mon->GetTags())
                  {
-                     LOG(INFO) << it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex()).size()) + ") \n";
+                     LOG(INFO) << it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex(), FSAll).size()) + ") \n";
                  }
 
                  LOG(INFO) << "Clients :\n";
-                 for (auto it : mon->GetClients(-1))
+                 for (auto it : mon->GetClients(-1, FSAll))
                  {
                      LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
                  }

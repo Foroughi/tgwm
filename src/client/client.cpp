@@ -7,8 +7,8 @@
 #include "../config.hpp"
 
 Client::Client(Display *display, Loc monitorLoc, Window frame, Window window, int tagIndex) : MonitorLoc(monitorLoc), Frame(frame), Win(window), _Display(display), TagIndex(tagIndex) {}
-Client::~Client() {
-    
+Client::~Client()
+{
 }
 
 Window Client::GetWindow()
@@ -102,4 +102,24 @@ void Client::SetTagIndex(int index)
 void Client::ChangeMonitor(Loc monitorLoc)
 {
     this->MonitorLoc = monitorLoc;
+}
+
+bool Client::GetFloatStatus()
+{
+    return this->Floating;
+}
+
+void Client::SetFloatStatus(bool status)
+{
+    this->Floating = status;
+}
+
+Client *Client::GetParent()
+{
+    return this->Parent;
+}
+
+void Client::SetParent(Client *parent)
+{
+    this->Parent = parent;
 }

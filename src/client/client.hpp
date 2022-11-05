@@ -15,6 +15,8 @@ private:
     Display *_Display;
     Loc MonitorLoc;   
     int TagIndex;
+    bool Floating = False;
+    Client* Parent = NULL;
 
 public:
     Client(Display *display, Loc monitorLoc, Window Frame, Window window, int TagIndex);
@@ -36,6 +38,12 @@ public:
 
     int GetTagIndex();
     void SetTagIndex(int index);
+
+    bool GetFloatStatus();
+    void SetFloatStatus(bool status);
+
+    Client* GetParent();
+    void SetParent(Client* Parent);
 
     void ChangeMonitor(Loc monitorLoc);
 };

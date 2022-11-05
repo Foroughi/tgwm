@@ -79,14 +79,29 @@ void Monitor::HideClients(int tagIndex)
     }
 }
 
-std::vector<Client *> Monitor::GetClients(int tagIndex = -1)
+std::vector<Client *> Monitor::GetClients(int tagIndex = -1, FloatingStatus FloatingStatus = FSAll)
 {
-    if (tagIndex == -1)
-        return this->Clients;
+    // if (tagIndex == -1)
+    //     return this->Clients;
 
     std::vector<Client *> temp = {};
     std::copy_if(this->Clients.begin(), this->Clients.end(), std::back_inserter(temp), [=](Client *c)
-                 { return c->GetTagIndex() == tagIndex; });
+                 { 
+                    bool flag = true;
+
+                    if(FloatingStatus != FSAll)
+                    {
+                        if(c->GetFloatStatus() != (FloatingStatus  == FSNormal ? False : True))
+                            flag = false;
+                    }
+
+                    if(tagIndex != -1)
+                    {
+                        if(c->GetTagIndex() != tagIndex)
+                            flag = false;
+                    }
+
+                    return flag; });
 
     return temp;
 }
@@ -103,18 +118,22 @@ void Monitor::ShowClients(int tagIndex)
 
 void Monitor::Sort()
 {
-    
-    
-    std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex());
+
+    std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex(), FSNormal);
 
     int cNum = clients.size();
+
+    LOG(INFO) << "Sorting : " << cNum;
+
+    for (auto c : clients)
+    {
+        LOG(INFO) << "Sorting Clients: " << c->GetFloatStatus();
+    }
 
     if (cNum == 0)
         return;
 
     int i = 0;
-
-    
 
     if (this->_Layout == Layouts_Vertical)
     {
@@ -124,9 +143,12 @@ void Monitor::Sort()
 
         for (auto c : clients)
         {
+
             c->SetSize(w - (GAP * 2), y - TOP_BAR_HEIGHT - (GAP * 2));
             c->SetLocation((i * w) + GAP + this->GetLoc().x, TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
             i++;
+
+            this->SortDialogs(c);
         }
     }
     else if (this->_Layout == Layouts_Horizontal)
@@ -139,15 +161,48 @@ void Monitor::Sort()
             c->SetSize(w - (GAP * 2), y - (GAP * 2));
             c->SetLocation(GAP + this->GetLoc().x, (y * i) + TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
             i++;
+
+            this->SortDialogs(c);
         }
     }
 }
 
-void Monitor::AddClient(Display *display, Window frame, Window win, int tagIndex = 0)
+void Monitor::SortDialogs(Client *parent)
+{
+    std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex(), FSFloating);
+
+    for (auto c : clients)
+    {
+        if (c->GetParent() == parent)
+        {
+
+            int x = parent->GetLocation().x;
+            int y = parent->GetLocation().y;
+
+            x += parent->GetSize().x / 2 - (c->GetSize().x / 2);
+            y += parent->GetSize().y / 2 - (c->GetSize().y / 2);
+
+            if (x < parent->GetLocation().x)
+                x = parent->GetLocation().x;
+
+            if (y < parent->GetLocation().y)
+                y = parent->GetLocation().y;
+
+            c->SetLocation(x, y);
+
+            this->SortDialogs(c);
+        }
+    }
+}
+
+void Monitor::AddClient(Display *display, Client *parent, Window frame, Window win, bool isFloating, int tagIndex = 0)
 {
     auto c = new Client(display, this->GetLoc(), frame, win, tagIndex);
+
+    c->SetFloatStatus(isFloating);
+    c->SetParent(parent);
+
     this->Clients.push_back(c);
-    
 }
 
 void Monitor::AddClient(Client *c)
@@ -160,8 +215,6 @@ void Monitor::SetLayout(Layouts layout)
 {
     this->_Layout = layout;
 }
-
-
 
 void Monitor::RemoveClient(Client *client)
 {
@@ -177,7 +230,7 @@ void Monitor::RemoveClient(Client *client)
         if (it == client)
         {
             this->Clients.erase(this->Clients.begin() + i);
-            //delete client;
+            // delete client;
             return;
         }
 

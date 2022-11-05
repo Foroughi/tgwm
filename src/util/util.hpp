@@ -52,6 +52,13 @@ enum
 	WMLast
 }; 
 
+enum FloatingStatus
+{
+	FSAll,
+	FSNormal,
+	FSFloating
+};
+
 enum Layouts
 {
 	Layouts_Horizontal,

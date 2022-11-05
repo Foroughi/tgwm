@@ -188,9 +188,9 @@ void Manager::DrawBar(Monitor *mon)
             w += extents.width;
         }
 
-        if (mon->GetClients(it->GetIndex()).size() > 0)
+        if (mon->GetClients(it->GetIndex(), FSNormal).size() > 0)
         {
-            std::string clientCountStr = std::to_string(mon->GetClients(it->GetIndex()).size());
+            std::string clientCountStr = std::to_string(mon->GetClients(it->GetIndex(), FSNormal).size());
 
             XGlyphInfo subextents;
             XftTextExtentsUtf8(this->CurrentDisplay, font_sub, (FcChar8 *)clientCountStr.data(), clientCountStr.length(), &subextents);
@@ -271,7 +271,7 @@ void Manager::DrawWidgets()
 
 void Manager::Unframe(Window w)
 {
-    
+
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
     if (!c)
@@ -371,7 +371,7 @@ Atom Manager::GetNETAtomByClient(Window w, Atom prop)
 void Manager::Frame(Window w, bool was_created_before_window_manager)
 {
 
-    
+    bool isFloating = False;
 
     Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
 
@@ -379,8 +379,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     {
         // a modal is being opened. That mean we dont consider it as a client.
         // We only make it sure it will be shown in the middle of its own parent
-        
-        return;
+        isFloating = true;
     }
 
     XWindowAttributes x_window_attrs;
@@ -395,10 +394,13 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         }
     }
 
-    if (x_window_attrs.override_redirect)
-        return;
+    // const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
+    Window frame;
 
-    const Window frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, -100, 100, 100, 100, BORDER_WIDTH, 0x000000, 0x000000);
+    static XWindowAttributes wa;
+    XGetWindowAttributes(this->CurrentDisplay, w, &wa);
+
+    frame = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, wa.width, wa.height, BORDER_WIDTH, 0x000000, 0x000000);
 
     XSelectInput(
         this->CurrentDisplay,
@@ -409,7 +411,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
 
-    this->SelectedMonitor->AddClient(this->CurrentDisplay, frame, w, this->SelectedMonitor->GetSelectedTag()->GetIndex());
+    this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
     this->SelectedMonitor->Sort();
 
@@ -417,7 +419,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     this->DrawBars();
 
-    LOG(INFO) << "Framed window " << w << " [" << frame << "]";
+    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
 }
 
 Client *Manager::FindClientByWin(Window win)
@@ -438,60 +440,72 @@ Client *Manager::FindClientByWin(Window win)
 void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 {
 
-    Atom wtype = this->GetNETAtomByClient(e.window, this->GetNETAtom(NetWMWindowType));
+    // Client *client = this->FindClientByWin(e.window);
+    // Atom wtype = this->GetNETAtomByClient(e.window, this->GetNETAtom(NetWMWindowType));
 
-    if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
+    // if (client)
+    // {
+    //     LOG(INFO) << "Configuration asked for client :" << e.window;
+    //     return;
+    // }
+    // else if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
+    // {
+
+    //     LOG(INFO) << "Configuration asked for dialog :" << e.window;
+    //     int x = this->GetSelectedClient()->GetLocation().x;
+    //     int y = this->GetSelectedClient()->GetLocation().y;
+
+    //     x += this->GetSelectedClient()->GetSize().x / 2 - (e.width / 2);
+    //     y += this->GetSelectedClient()->GetSize().y / 2 - (e.height / 2);
+
+    //     if (x < this->GetSelectedMonitor()->GetLoc().x)
+    //         x = this->GetSelectedMonitor()->GetLoc().x;
+
+    //     if (y < this->GetSelectedMonitor()->GetLoc().y)
+    //         y = this->GetSelectedMonitor()->GetLoc().y;
+
+    //     XMoveWindow(this->CurrentDisplay, e.window, x, y);
+
+    //     return;
+    // }
+    // else
     {
+        LOG(INFO) << "Configuration asked for  :" << e.window;
+        XWindowChanges changes;
+        changes.x = e.x;
+        changes.y = e.y;
+        changes.width = e.width;
+        changes.height = e.height;
+        changes.border_width = e.border_width;
+        changes.sibling = e.above;
+        changes.stack_mode = e.detail;
 
-        int x = this->GetSelectedClient()->GetLocation().x;
-        int y = this->GetSelectedClient()->GetLocation().y;        
+        auto c = this->SelectedMonitor->FindByWindow(e.window);
 
-        x += this->GetSelectedClient()->GetSize().x / 2 - (e.width / 2);
-        y += this->GetSelectedClient()->GetSize().y / 2 - (e.height / 2);
+        if (c != NULL)
+        {
 
-        if(x < this->GetSelectedMonitor()->GetLoc().x)
-            x = this->GetSelectedMonitor()->GetLoc().x;
+            const Window frame = c->GetFrame();
+            XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
+        }
 
-        if(y < this->GetSelectedMonitor()->GetLoc().y)
-            y = this->GetSelectedMonitor()->GetLoc().y;
-
-        XMoveWindow(this->CurrentDisplay, e.window, x, y);
-        
-
-        return;
+        XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+        LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
     }
-
-    XWindowChanges changes;
-    changes.x = e.x;
-    changes.y = e.y;
-    changes.width = e.width;
-    changes.height = e.height;
-    changes.border_width = e.border_width;
-    changes.sibling = e.above;
-    changes.stack_mode = e.detail;
-
-    auto c = this->SelectedMonitor->FindByWindow(e.window);
-
-    if (c != NULL)
-    {
-
-        const Window frame = c->GetFrame();
-        XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
-        LOG(INFO) << "Resize [" << frame << "] to " << e.width << " " << e.height;
-    }
-
-    XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-    LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
 }
 
 void Manager::OnMapRequest(const XMapRequestEvent &e)
-{    
+{
+    if (this->FindClientByWin(e.window))
+        return;
+
     Frame(e.window, false);
     XMapWindow(this->CurrentDisplay, e.window);
 }
 
-void Manager::OnCreateNotify(const XCreateWindowEvent &e) {
-    
+void Manager::OnCreateNotify(const XCreateWindowEvent &e)
+{
+    LOG(INFO) << "Creating " << e.window;
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
@@ -516,8 +530,8 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
     this->Update_NET_CLIENT_LIST();
 }
 
-void Manager::OnReparentNotify(const XReparentEvent &e) {
-    
+void Manager::OnReparentNotify(const XReparentEvent &e)
+{
 }
 
 void Manager::OnMapNotify(const XMapEvent &e) {}
@@ -797,7 +811,7 @@ void Manager::Update_NET_CLIENT_LIST()
 {
     XDeleteProperty(this->CurrentDisplay, root, NET_Atom[NetClientList]);
     for (auto mon : this->Monitors)
-        for (auto client : mon->GetClients(-1))
+        for (auto client : mon->GetClients(-1, FSAll))
         {
             auto c = client->GetWindow();
 
@@ -880,13 +894,14 @@ int Manager::Run()
     this->Config();
     this->DrawBars();
 
+    LOG(INFO) << "Starts....";
     while (IsRunning)
     {
 
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);
-        if (e.type != MotionNotify)
-            LOG(INFO) << "Received event: " << ToString(e);
+        // if (e.type != MotionNotify)
+        // LOG(INFO) << "Received event: " << ToString(e);
 
         switch (e.type)
         {
@@ -948,7 +963,7 @@ int Manager::Run()
             onFocusIn(e.xfocus);
             break;
         default:
-            LOG(WARNING) << "Ignored event";
+            break;
         }
     }
 
