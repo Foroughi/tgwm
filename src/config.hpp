@@ -57,6 +57,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 #define ICON_FA_WIFI "\xef\x87\xab"
 #define ICON_FA_MICROCHIP "\xef\x8b\x9b"
 #define ICON_FA_MEMORY "\xef\x94\xb8"
+#define ICON_FA_KEYBOARD "\xef\x84\x9c"
 #define ICON_FA_COMPUTER "\xee\x93\xa5"
 #define ICON_FA_CALENDAR "\xef\x84\xb3"
 #define ICON_FA_CLOCK "\xef\x80\x97"
@@ -204,8 +205,28 @@ namespace CONFIG
 
                 return memory.substr(16, 2) + "/" + memory.substr(27, 6);
             },
-            [](int button) {})
+            [](int button) {}),
 
+
+        // Memory Widget
+        new Widget(
+            "keyboard", Colors[6], ICON_FA_KEYBOARD,
+            [](Widget *w)
+            {
+                std::string layout = exec("setxkbmap -query | grep layout");
+
+                return layout.substr(12, 2);
+            },
+            [](int button) {
+
+                std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
+
+                if(layout == "de")
+                    start("setxkbmap us");                
+                else if(layout == "us")
+                    start("setxkbmap de");                
+
+            }),    
     };
 
     /*=====================================================================================================*/
@@ -376,8 +397,21 @@ namespace CONFIG
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
              start("kitty");
-         }}
+         }},
 
+        // Mod + Space
+        {XK_space, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
+
+            if(layout == "de")
+                start("setxkbmap us");            
+            else if(layout == "us")
+                start("setxkbmap de");
+
+            manager->DrawBars();
+
+         }}
     };
 
 }
