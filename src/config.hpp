@@ -15,6 +15,7 @@
 #include "./manager/manager.hpp"
 #include "./util/util.hpp"
 #include <glog/logging.h>
+#include <cctype>
 
 /*=====================================================================================================*/
 /*=============================================== Configs =============================================*/
@@ -213,9 +214,9 @@ namespace CONFIG
             "keyboard", Colors[6], ICON_FA_KEYBOARD,
             [](Widget *w)
             {
-                std::string layout = exec("setxkbmap -query | grep layout");
-
-                return layout.substr(12, 2);
+                std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
+                for (auto & c: layout) c = toupper(c);
+                return layout;
             },
             [](int button, Manager *manager)
             {

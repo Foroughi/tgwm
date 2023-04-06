@@ -12,7 +12,6 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-
 #include <array>
 
 
@@ -96,12 +95,7 @@ void DrawText(Display *display, Drawable drawable, int screen, std::string Color
 
 std::string GetTime()
 {
-
-    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-    auto c = std::ctime(&time);
-
-    return std::string(c).substr(11, 5);
+    return exec("timedatectl").substr(98, 5);
 }
 
 std::string GetDate()
