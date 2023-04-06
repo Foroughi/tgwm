@@ -642,7 +642,7 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
 
             if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
             {
-                w->Click(e.button , this);
+                w->Click(e.button, this);
                 ClickGrabbed = True;
                 break;
             }
@@ -657,7 +657,7 @@ void Manager::OnKeyPress(const XKeyEvent &e)
 
     for (auto k : CONFIG::Keys)
     {
-        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && CLEANMASK(std::get<1>(k), numlockmask) == CLEANMASK(e.state , numlockmask))
+        if (e.keycode == XKeysymToKeycode(this->CurrentDisplay, std::get<0>(k)) && CLEANMASK(std::get<1>(k), numlockmask) == CLEANMASK(e.state, numlockmask))
         {
             std::get<2>(k)(this, e);
             break;
