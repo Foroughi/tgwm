@@ -8,7 +8,8 @@
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define BETWEEN(X, A, B) ((A) <= (X) && (X) <= (B))
 //#define CLEANMASK(mask) (mask & ~(0 | LockMask) & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
-#define CLEANMASK(mask) (mask & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
+#define CLEANMASK(mask , numlockmask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+//#define CLEANMASK(mask) (mask & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
 struct Loc
 {
 	int x;
@@ -26,7 +27,7 @@ struct Rect
 void start(char *what);
 std::string exec(const char *cmd);
 std::string ToString(const XEvent &e);
-
+static unsigned int numlockmask = 0;
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
 

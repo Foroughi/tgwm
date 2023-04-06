@@ -1,6 +1,7 @@
 #include "widget.hpp"
+#include "../manager/manager.hpp"
 
-Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int)> clickFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction), OnClick(clickFunction)
+Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager* mananger)> clickFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction), OnClick(clickFunction)
 {
 }
 
@@ -43,9 +44,9 @@ std::string Widget::GetValue()
     return this->Value;
 }
 
-void Widget::Click(int button)
+void Widget::Click(int button ,Manager* manager)
 {
-    this->OnClick(button);
+    this->OnClick(button , manager);
 }
 
 Rect Widget::GetRect()

@@ -6,6 +6,8 @@
 #include <string>
 #include <functional>
 
+
+class Manager;
 class Widget
 {
 
@@ -19,7 +21,7 @@ private:
     Rect MouseRect;
 
 public:
-    Widget(std::string name, std::string colo, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int)> clickFunction);
+    Widget(std::string name, std::string colo, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager*)> clickFunction);
     ~Widget();
     std::string GetName();
     std::string GetColor();
@@ -28,10 +30,9 @@ public:
     int GetInterval();
     void Update();
     std::string GetValue();
-    void Click(int button);
+    void Click(int button, Manager* mananger);
     std::function<std::string(Widget *)> OnUpdate;
-    std::function<void(int)> OnClick;
-
+    std::function<void(int, Manager*)> OnClick;    
     Rect GetRect();
     void SetRect(int x, int y, int w, int h);
 

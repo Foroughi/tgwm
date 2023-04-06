@@ -119,6 +119,7 @@ namespace CONFIG
     /*=====================================================================================================*/
     /*================================================ Widgets ============================================*/
     /*=====================================================================================================*/
+
     inline std::vector<Widget *> Widgets = {
 
         // System Widget
@@ -128,7 +129,7 @@ namespace CONFIG
             {
                 return "";
             },
-            [](int button)
+            [](int button, Manager *manager)
             {
                 start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
             }),
@@ -140,14 +141,14 @@ namespace CONFIG
             {
                 return GetTime();
             },
-            [](int button) {}),
+            [](int button, Manager *manager) {}),
 
         // Date Widget
         new Widget(
             "date", Colors[1], ICON_FA_CALENDAR,
             [](Widget *w)
             { return GetDate(); },
-            [](int button) {}),
+            [](int button, Manager *manager) {}),
 
         // Volume Widget
         new Widget(
@@ -169,7 +170,7 @@ namespace CONFIG
 
                 return "";
             },
-            [](int button)
+            [](int button, Manager *manager)
             {
                 start("pavucontrol");
             }),
@@ -179,7 +180,7 @@ namespace CONFIG
             "network", Colors[3], ICON_FA_WIFI,
             [](Widget *w)
             { return ""; },
-            [](int button)
+            [](int button, Manager *manager)
             {
                 start("nm-connection-editor");
             }),
@@ -191,7 +192,7 @@ namespace CONFIG
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
             },
-            [](int button)
+            [](int button, Manager *manager)
             {
                 start("kitty htop");
             }),
@@ -205,8 +206,7 @@ namespace CONFIG
 
                 return memory.substr(16, 2) + "/" + memory.substr(27, 6);
             },
-            [](int button) {}),
-
+            [](int button, Manager *manager) {}),
 
         // Memory Widget
         new Widget(
@@ -217,16 +217,17 @@ namespace CONFIG
 
                 return layout.substr(12, 2);
             },
-            [](int button) {
-
+            [](int button, Manager *manager)
+            {
                 std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
 
-                if(layout == "de")
-                    start("setxkbmap us");                
-                else if(layout == "us")
-                    start("setxkbmap de");                
+                if (layout == "de")
+                    start("setxkbmap us");
+                else if (layout == "us")
+                    start("setxkbmap de");
 
-            }),    
+                manager->DrawBars();
+            }),
     };
 
     /*=====================================================================================================*/
@@ -278,6 +279,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 0);
              manager->SortAll();
+             manager->DrawBars();
          }},
         // Mod + 1
         {XK_1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
@@ -290,6 +292,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 1);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 2
@@ -303,6 +306,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 2);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 3
@@ -316,6 +320,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 3);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 4
@@ -329,6 +334,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(0), 4);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 5
@@ -342,6 +348,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(1), 0);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 6
@@ -355,6 +362,7 @@ namespace CONFIG
          {
              manager->MoveSelectedClient(manager->GetMonitor(1), 1);
              manager->SortAll();
+             manager->DrawBars();
          }},
 
         // Mod + 7
@@ -400,19 +408,17 @@ namespace CONFIG
          }},
 
         // Mod + Space
-        {XK_space, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+        {XK_Shift_L, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
+             std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
 
-            if(layout == "de")
-                start("setxkbmap us");            
-            else if(layout == "us")
-                start("setxkbmap de");
+             if (layout == "de")
+                 start("setxkbmap us");
+             else if (layout == "us")
+                 start("setxkbmap de");
 
-            manager->DrawBars();
-
-         }}
-    };
+             manager->DrawBars();
+         }}};
 
 }
 
