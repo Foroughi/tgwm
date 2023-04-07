@@ -229,7 +229,7 @@ void Manager::UpdateWidgets()
 
 void Manager::DrawWidgets()
 {
-
+    int i = 0;
     for (auto mon : this->GetMonitors())
     {
 
@@ -247,29 +247,33 @@ void Manager::DrawWidgets()
 
         for (auto w : this->Widgets)
         {
+            if (w->GetMonitorDisplayStatus()[i])
+            {
+                XftColor selectedcolor;
+                XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
-            XftColor selectedcolor;
-            XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
+                XGlyphInfo extents;
+                XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
 
-            XGlyphInfo extents;
-            XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
+                XftDrawStringUtf8(d, &selectedcolor, iconfont, mon->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
-            XftDrawStringUtf8(d, &selectedcolor, iconfont, mon->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
+                if (strlen(w->GetValue().data()) > 0)
+                    XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
 
-            if (strlen(w->GetValue().data()) > 0)
-                XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
+                XftDrawRect(d, &selectedcolor, mon->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
+                // XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
 
-            XftDrawRect(d, &selectedcolor, mon->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
-            // XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
+                w->SetRect(mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
 
-            w->SetRect(mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
+                width += extents.width + 27;
 
-            width += extents.width + 27;
-
-            XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
+                XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
+            }
         }
 
         XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &bgColor);
+
+        i++;
     }
 }
 

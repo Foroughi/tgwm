@@ -1,7 +1,7 @@
 #include "widget.hpp"
 #include "../manager/manager.hpp"
 
-Widget::Widget(std::string name, std::string color, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager* mananger)> clickFunction) : Name(name), Color(color), Icon(icon), OnUpdate(updateFunction), OnClick(clickFunction)
+Widget::Widget(std::string name, std::string color, std::string icon,std::vector<bool> MonitorDisplayStatus , std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager* mananger)> clickFunction) : Name(name), Color(color), Icon(icon),MonitorDisplayStatus(MonitorDisplayStatus), OnUpdate(updateFunction), OnClick(clickFunction)
 {
 }
 
@@ -66,4 +66,9 @@ bool Widget::GetHoverStatus()
 void Widget::SetHoverStatus(bool status)
 {
     this->Hovered = status;
+}
+
+std::vector<bool> Widget::GetMonitorDisplayStatus()
+{
+    return this->MonitorDisplayStatus;
 }

@@ -19,9 +19,10 @@ private:
     std::string Value = "";
     bool Hovered = False;
     Rect MouseRect;
+    std::vector<bool> MonitorDisplayStatus;
 
 public:
-    Widget(std::string name, std::string colo, std::string icon, std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager*)> clickFunction);
+    Widget(std::string name, std::string colo, std::string icon, std::vector<bool> MonitorDisplayStatus , std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager*)> clickFunction);
     ~Widget();
     std::string GetName();
     std::string GetColor();
@@ -37,6 +38,7 @@ public:
     void SetRect(int x, int y, int w, int h);
 
     bool GetHoverStatus();
+    std::vector<bool> GetMonitorDisplayStatus();
     void SetHoverStatus(bool status);
 };
 

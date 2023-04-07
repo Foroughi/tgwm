@@ -125,7 +125,7 @@ namespace CONFIG
 
         // System Widget
         new Widget(
-            "system", Colors[11], ICON_FA_POWER_OFF,
+            "system", Colors[11], ICON_FA_POWER_OFF, {true , false} ,
             [](Widget *w)
             {
                 return "";
@@ -137,7 +137,7 @@ namespace CONFIG
 
         // Time Widget
         new Widget(
-            "time", Colors[0], ICON_FA_CLOCK,
+            "time", Colors[0], ICON_FA_CLOCK, {true , true} ,
             [](Widget *w)
             {
                 return GetTime();
@@ -146,14 +146,14 @@ namespace CONFIG
 
         // Date Widget
         new Widget(
-            "date", Colors[1], ICON_FA_CALENDAR,
+            "date", Colors[1], ICON_FA_CALENDAR, {true , true} ,
             [](Widget *w)
             { return GetDate(); },
             [](int button, Manager *manager) {}),
 
         // Volume Widget
         new Widget(
-            "volumn", Colors[2], ICON_FA_VOLUME_HIGH,
+            "volumn", Colors[2], ICON_FA_VOLUME_HIGH, {true , false} ,
             [](Widget *w)
             {
                 std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
@@ -178,7 +178,7 @@ namespace CONFIG
 
         // Network Widget
         new Widget(
-            "network", Colors[3], ICON_FA_WIFI,
+            "network", Colors[3], ICON_FA_WIFI, {true , false} ,
             [](Widget *w)
             { return ""; },
             [](int button, Manager *manager)
@@ -188,7 +188,7 @@ namespace CONFIG
 
         // Cpu Widget
         new Widget(
-            "cpu", Colors[4], ICON_FA_MICROCHIP,
+            "cpu", Colors[4], ICON_FA_MICROCHIP, {true , true} ,
             [](Widget *w)
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
@@ -200,7 +200,7 @@ namespace CONFIG
 
         // Memory Widget
         new Widget(
-            "memory", Colors[5], ICON_FA_MEMORY,
+            "memory", Colors[5], ICON_FA_MEMORY, {true , true} ,
             [](Widget *w)
             {
                 std::string memory = exec("free -h | grep Mem:");
@@ -211,7 +211,7 @@ namespace CONFIG
 
         // Memory Widget
         new Widget(
-            "keyboard", Colors[6], ICON_FA_KEYBOARD,
+            "keyboard", Colors[6], ICON_FA_KEYBOARD, {true , false} ,
             [](Widget *w)
             {
                 std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
