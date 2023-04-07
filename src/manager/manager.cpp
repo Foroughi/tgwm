@@ -606,6 +606,7 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 
 void Manager::OnButtonPress(XButtonPressedEvent &e)
 {
+    this->DrawBars();
     bool ClickGrabbed = False;
 
     if (TAGS_CLICKABLE && !ClickGrabbed)
