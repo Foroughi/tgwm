@@ -188,7 +188,7 @@ namespace CONFIG
 
         // Cpu Widget
         new Widget(
-            "cpu", Colors[4], ICON_FA_MICROCHIP, {true , true} ,
+            "cpu", Colors[4], ICON_FA_MICROCHIP, {true , false} ,
             [](Widget *w)
             {
                 return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
@@ -200,7 +200,7 @@ namespace CONFIG
 
         // Memory Widget
         new Widget(
-            "memory", Colors[5], ICON_FA_MEMORY, {true , true} ,
+            "memory", Colors[5], ICON_FA_MEMORY, {true , false} ,
             [](Widget *w)
             {
                 std::string memory = exec("free -h | grep Mem:");
