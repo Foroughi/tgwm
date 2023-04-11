@@ -36,7 +36,16 @@ int Widget::GetInterval()
 
 void Widget::Update()
 {
-    this->Value = this->OnUpdate(this);
+    try
+    {
+        this->Value = this->OnUpdate(this);
+    }
+    catch(const std::exception& e)
+    {
+        this->Value = "ERROR";
+    }
+    
+    
 }
 
 std::string Widget::GetValue()

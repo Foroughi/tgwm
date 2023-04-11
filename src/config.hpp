@@ -156,7 +156,7 @@ namespace CONFIG
             "volumn", Colors[2], ICON_FA_VOLUME_HIGH, {true , false} ,
             [](Widget *w)
             {
-                std::string volumn = exec("amixer sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }'");
+                std::string volumn = exec("amixer sget Master | grep 'Mono:' | awk -F'[][]' '{ print $2 }'");
 
                 volumn = volumn.substr(0, volumn.length() - 2);
 
