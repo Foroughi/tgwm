@@ -124,12 +124,7 @@ void Monitor::Sort()
     int cNum = clients.size();
 
     LOG(INFO) << "Sorting : " << cNum;
-
-    for (auto c : clients)
-    {
-        LOG(INFO) << "Sorting Clients: " << c->GetFloatStatus();
-    }
-
+        
     if (cNum == 0)
         return;
 

@@ -408,6 +408,12 @@ namespace CONFIG
              start("kitty");
          }},
 
+        // Mod + F5
+        {XK_F5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+             manager->Reload();
+         }},
+
         // Mod + Space
         {XK_Shift_L, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {

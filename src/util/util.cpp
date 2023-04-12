@@ -101,11 +101,8 @@ std::string GetTime()
 
 std::string GetDate()
 {
-    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-    auto c = std::ctime(&time);
-
-    return std::string(c).substr(0, 3) + ", " + std::string(c).substr(4, 3) + " " + std::string(c).substr(9, 2);
+//               Local time: Tue 2023-04-11 19:36:55 CEST    
+    return exec("timedatectl").substr(27, 14);
 }
 
 

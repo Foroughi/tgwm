@@ -60,6 +60,7 @@ public:
     void DrawWidgets();
     void UpdateWidgets();
     void SortAll();
+    void Reload();
     void onSelectedTagChanged(int Index);    
     Display* GetDisplay();
     void OnClientMessage(XClientMessageEvent &e);

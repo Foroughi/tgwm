@@ -116,6 +116,11 @@ Manager::~Manager()
     XCloseDisplay(this->CurrentDisplay);
 }
 
+void Manager::Reload(){
+    this->DrawBars();
+    this->SortAll();
+}
+
 void Manager::DrawBars()
 {
 
@@ -398,6 +403,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         if (x_window_attrs.override_redirect ||
             x_window_attrs.map_state != IsViewable)
         {
+            LOG(INFO) << "Framed window canceled due to overrided attribute";
             return;
         }
     }
@@ -421,13 +427,18 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
-    this->SelectedMonitor->Sort();
+    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
+
+    
 
     this->Update_NET_CLIENT_LIST();
 
     this->DrawBars();
 
-    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
+
+    this->SelectedMonitor->Sort();
+
+    
 }
 
 Client *Manager::FindClientByWin(Window win)
@@ -493,12 +504,29 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
         if (c != NULL)
         {
 
-            const Window frame = c->GetFrame();
-            XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
-        }
+            //const Window frame = c->GetFrame();
+            //XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
+            // LOG(INFO) << "Reframing " << e.window;    
 
-        XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-        LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
+            changes.x = 0;
+            changes.y = 0;
+            changes.width = c->GetSize().x;
+
+            //I am not crazy , some QT app should made a small change in their size , so they react to that change 
+            // here i reduse the height by 1 on change it back.
+            changes.height = c->GetSize().y - 1;
+            
+            XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+
+            changes.height = c->GetSize().y;
+            
+            XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+            
+            LOG(INFO) << "Resize " << e.window << " to " << changes.width << " " << changes.height;
+            LOG(INFO) << "Move " << e.window << " to " << changes.x << " " << changes.y;
+        }
+        
+        
     }
 }
 
@@ -513,11 +541,13 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)
 {
-    LOG(INFO) << "Creating " << e.window;
+    //LOG(INFO) << "Creating " << e.window;
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 {
+
+    LOG(INFO) << "Destroying window " << e.window;
 
     Client *c = this->SelectedMonitor->FindByWindow(e.window);
 
@@ -528,10 +558,13 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 
     const Window win = c->GetWindow();
 
-    LOG(INFO) << "Destroying window " << win << " [" << frame << "]";
+    
 
     this->SelectedMonitor->RemoveClient(c);
     delete c;
+
+
+    LOG(INFO) << "Destroyed window " << win << " [" << frame << "]";
 
     this->SelectedMonitor->Sort();
 
@@ -588,7 +621,7 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
         this->SelectClient(NULL);
 
         return;
-    }
+    } 
 
     for (auto it : this->Monitors)
     {
@@ -600,6 +633,17 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
 
             if (it != this->SelectedMonitor)
                 this->SelectedMonitor = it;
+            
+            auto dialogs = it->GetClients(-1 , FloatingStatus::FSFloating);
+
+            for(auto dialog : dialogs)
+            {
+                if(dialog->GetParent() == c)
+                {
+                    c = dialog;    
+                    break;
+                }
+            }
 
             this->SelectClient(c);
 
@@ -911,8 +955,8 @@ int Manager::Run()
 
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);
-        // if (e.type != MotionNotify)
-        // LOG(INFO) << "Received event: " << ToString(e);
+        //if (e.type != MotionNotify)
+            //LOG(INFO) << "Received event: " << ToString(e);
 
         switch (e.type)
         {
