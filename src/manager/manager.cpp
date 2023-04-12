@@ -222,10 +222,10 @@ void Manager::UpdateWidgets()
                {
                    this->IsUpdatingWidgets = True;
 
-                   for (auto it : this->Widgets)
-                   {
-                       it->Update();
-                   }
+                //    for (auto it : this->Widgets)
+                //    {
+                //        it->Update();
+                //    }
 
                    this->DrawWidgets();
 
@@ -246,24 +246,26 @@ void Manager::DrawWidgets()
         XftColor bgColor;
         XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
-        XftDrawRect(d, &bgColor, mon->GetSize().x - 500, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
+        XftDrawRect(d, &bgColor, mon->GetSize().x - 600, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
         auto width = (2 * GAP) + 20;
 
         for (auto w : this->Widgets)
         {
+            auto value = w->Update(mon);
+
             if (w->GetMonitorDisplayStatus()[i])
             {
                 XftColor selectedcolor;
                 XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
                 XGlyphInfo extents;
-                XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
+                XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)value.data(), strlen(value.data()), &extents);
 
                 XftDrawStringUtf8(d, &selectedcolor, iconfont, mon->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
-                if (strlen(w->GetValue().data()) > 0)
-                    XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
+                if (strlen(value.data()) > 0)
+                    XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)value.c_str(), strlen(value.data()));
 
                 XftDrawRect(d, &selectedcolor, mon->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
                 // XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);

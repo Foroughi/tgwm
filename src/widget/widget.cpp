@@ -1,7 +1,8 @@
 #include "widget.hpp"
 #include "../manager/manager.hpp"
+#include "../monitor/monitor.hpp"
 
-Widget::Widget(std::string name, std::string color, std::string icon,std::vector<bool> MonitorDisplayStatus , std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager* mananger)> clickFunction) : Name(name), Color(color), Icon(icon),MonitorDisplayStatus(MonitorDisplayStatus), OnUpdate(updateFunction), OnClick(clickFunction)
+Widget::Widget(std::string name, std::string color, std::string icon, std::vector<bool> MonitorDisplayStatus, std::function<std::string(Widget * , Monitor *)> updateFunction, std::function<void(int, Manager *mananger)> clickFunction) : Name(name), Color(color), Icon(icon), MonitorDisplayStatus(MonitorDisplayStatus), OnUpdate(updateFunction), OnClick(clickFunction)
 {
 }
 
@@ -34,18 +35,16 @@ int Widget::GetInterval()
     return this->Interval;
 }
 
-void Widget::Update()
+std::string Widget::Update(Monitor *mon)
 {
     try
     {
-        this->Value = this->OnUpdate(this);
+        return this->OnUpdate(this , mon);
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
-        this->Value = "ERROR";
+        return "ERROR";
     }
-    
-    
 }
 
 std::string Widget::GetValue()
@@ -53,9 +52,9 @@ std::string Widget::GetValue()
     return this->Value;
 }
 
-void Widget::Click(int button ,Manager* manager)
+void Widget::Click(int button, Manager *manager)
 {
-    this->OnClick(button , manager);
+    this->OnClick(button, manager);
 }
 
 Rect Widget::GetRect()

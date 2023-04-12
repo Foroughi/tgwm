@@ -6,8 +6,8 @@
 #include <string>
 #include <functional>
 
-
 class Manager;
+class Monitor;
 class Widget
 {
 
@@ -22,21 +22,20 @@ private:
     std::vector<bool> MonitorDisplayStatus;
 
 public:
-    Widget(std::string name, std::string colo, std::string icon, std::vector<bool> MonitorDisplayStatus , std::function<std::string(Widget *)> updateFunction, std::function<void(int , Manager*)> clickFunction);
+    Widget(std::string name, std::string colo, std::string icon, std::vector<bool> MonitorDisplayStatus, std::function<std::string(Widget * , Monitor *)> updateFunction, std::function<void(int, Manager *)> clickFunction);
     ~Widget();
     std::string GetName();
     std::string GetColor();
     void SetIcon(std::string icon);
     std::string GetIcon();
     int GetInterval();
-    void Update();
+    std::string Update(Monitor *mon);
     std::string GetValue();
-    void Click(int button, Manager* mananger);
-    std::function<std::string(Widget *)> OnUpdate;
-    std::function<void(int, Manager*)> OnClick;    
+    void Click(int button, Manager *mananger);
+    std::function<std::string(Widget * , Monitor *)> OnUpdate;
+    std::function<void(int, Manager *)> OnClick;
     Rect GetRect();
     void SetRect(int x, int y, int w, int h);
-
     bool GetHoverStatus();
     std::vector<bool> GetMonitorDisplayStatus();
     void SetHoverStatus(bool status);

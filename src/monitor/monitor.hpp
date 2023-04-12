@@ -52,6 +52,7 @@ public:
     void MoveSelectedClient(int index);
     void AddClient(Client * c);
     void SetLayout(Layouts layout);
+    Layouts GetLayout();
     void SortDialogs(Client* parent);
     std::function<void(int)> OnSelectedTagChanged = NULL;
 };

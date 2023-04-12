@@ -211,6 +211,11 @@ void Monitor::SetLayout(Layouts layout)
     this->_Layout = layout;
 }
 
+Layouts Monitor::GetLayout()
+{
+    return this->_Layout;
+}
+
 void Monitor::RemoveClient(Client *client)
 {
 
