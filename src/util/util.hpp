@@ -64,7 +64,8 @@ enum FloatingStatus
 enum Layouts
 {
 	Layouts_Horizontal,
-	Layouts_Vertical
+	Layouts_Vertical,
+    Layouts_Focus
 };
 
 enum

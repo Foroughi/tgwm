@@ -7,6 +7,7 @@
 #include "../tag/tag.hpp"
 #include "../client/client.hpp"
 #include <functional>
+#include "../widget/widget.hpp"
 
 class Monitor
 {
@@ -21,7 +22,7 @@ private:
     std::vector<Client *> Clients;
     Tag *SelectedTag;
     Window Topbar;
-
+    std::vector<Widget*> Widgets = {};
     Display *_Display;
     int Screen;
 
@@ -52,6 +53,9 @@ public:
     void MoveSelectedClient(int index);
     void AddClient(Client * c);
     void SetLayout(Layouts layout);
+    Layouts GetLayout();
+    void SetWidgets(std::vector<Widget*> widgets);
+    std::vector<Widget*> GetWidgets();
     void SortDialogs(Client* parent);
     std::function<void(int)> OnSelectedTagChanged = NULL;
 };

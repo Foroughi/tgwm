@@ -61,6 +61,7 @@ void Manager::Config()
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
+            mon->SetWidgets(CONFIG::Widgets.at(i));
             this->Monitors.push_back(mon);
         }
 
@@ -94,6 +95,8 @@ void Manager::Config()
             this->DrawBars();
         };
 
+        mon->SetWidgets(CONFIG::Widgets.at(0));
+
         this->Monitors.push_back(mon);
     }
 
@@ -107,13 +110,17 @@ void Manager::onSelectedTagChanged(int Index)
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
     this->IsRunning = True;
-
-    this->Widgets = CONFIG::Widgets;
 }
 
 Manager::~Manager()
 {
     XCloseDisplay(this->CurrentDisplay);
+}
+
+void Manager::Reload()
+{
+    this->DrawBars();
+    this->SortAll();
 }
 
 void Manager::DrawBars()
@@ -125,7 +132,7 @@ void Manager::DrawBars()
         this->DrawBar(it);
     }
 
-    this->UpdateWidgets();
+    // this->UpdateWidgets();
 }
 
 void Manager::DrawBar(Monitor *mon)
@@ -217,10 +224,10 @@ void Manager::UpdateWidgets()
                {
                    this->IsUpdatingWidgets = True;
 
-                   for (auto it : this->Widgets)
-                   {
-                       it->Update();
-                   }
+                //    for (auto it : this->Widgets)
+                //    {
+                //        it->Update();
+                //    }
 
                    this->DrawWidgets();
 
@@ -241,24 +248,32 @@ void Manager::DrawWidgets()
         XftColor bgColor;
         XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
-        XftDrawRect(d, &bgColor, mon->GetSize().x - 500, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
+        // XftDrawRect(d, &bgColor, mon->GetSize().x - 600, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
         auto width = (2 * GAP) + 20;
 
-        for (auto w : this->Widgets)
+        for (auto w : mon->GetWidgets())
         {
-            if (w->GetMonitorDisplayStatus()[i])
+            auto value = w->Update(mon);
+
+            XGlyphInfo extents;
+            XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)value.data(), strlen(value.data()), &extents);
+
+            if (w->GetChangeStatus())
             {
+                
+                w->SetChangeStatus(false);
+
+                // reset the widget
+                XftDrawRect(d, &bgColor, mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
+
                 XftColor selectedcolor;
                 XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
-                XGlyphInfo extents;
-                XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)w->GetValue().data(), strlen(w->GetValue().data()), &extents);
-
                 XftDrawStringUtf8(d, &selectedcolor, iconfont, mon->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
-                if (strlen(w->GetValue().data()) > 0)
-                    XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)w->GetValue().c_str(), strlen(w->GetValue().data()));
+                if (strlen(value.data()) > 0)
+                    XftDrawStringUtf8(d, &selectedcolor, font, mon->GetSize().x - width - extents.width + 10, 18, (const FcChar8 *)value.c_str(), strlen(value.data()));
 
                 XftDrawRect(d, &selectedcolor, mon->GetSize().x - width - extents.width - 9, 23, extents.width + 22, 3);
                 // XftDrawRect(d, &selectedcolor, this->Monitors[0]->GetSize().x - width - extents.width - 9, 0, extents.width + 22, TOP_BAR_HEIGHT);
@@ -268,6 +283,10 @@ void Manager::DrawWidgets()
                 width += extents.width + 27;
 
                 XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
+            }
+            else
+            {
+                width += extents.width + 27;
             }
         }
 
@@ -398,6 +417,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         if (x_window_attrs.override_redirect ||
             x_window_attrs.map_state != IsViewable)
         {
+            LOG(INFO) << "Framed window canceled due to overrided attribute";
             return;
         }
     }
@@ -421,13 +441,13 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
-    this->SelectedMonitor->Sort();
+    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
 
     this->Update_NET_CLIENT_LIST();
 
     this->DrawBars();
 
-    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
+    this->SelectedMonitor->Sort();
 }
 
 Client *Manager::FindClientByWin(Window win)
@@ -493,12 +513,27 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
         if (c != NULL)
         {
 
-            const Window frame = c->GetFrame();
-            XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
-        }
+            // const Window frame = c->GetFrame();
+            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
+            //  LOG(INFO) << "Reframing " << e.window;
 
-        XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-        LOG(INFO) << "Resize " << e.window << " to " << e.width << " " << e.height;
+            changes.x = 0;
+            changes.y = 0;
+            changes.width = c->GetSize().x;
+
+            // I am not crazy , some QT app should made a small change in their size , so they react to that change
+            //  here i reduse the height by 1 on change it back.
+            changes.height = c->GetSize().y - 1;
+
+            XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+
+            changes.height = c->GetSize().y;
+
+            XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+
+            LOG(INFO) << "Resize " << e.window << " to " << changes.width << " " << changes.height;
+            LOG(INFO) << "Move " << e.window << " to " << changes.x << " " << changes.y;
+        }
     }
 }
 
@@ -513,11 +548,13 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)
 {
-    LOG(INFO) << "Creating " << e.window;
+    // LOG(INFO) << "Creating " << e.window;
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 {
+
+    LOG(INFO) << "Destroying window " << e.window;
 
     Client *c = this->SelectedMonitor->FindByWindow(e.window);
 
@@ -528,10 +565,10 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 
     const Window win = c->GetWindow();
 
-    LOG(INFO) << "Destroying window " << win << " [" << frame << "]";
-
     this->SelectedMonitor->RemoveClient(c);
     delete c;
+
+    LOG(INFO) << "Destroyed window " << win << " [" << frame << "]";
 
     this->SelectedMonitor->Sort();
 
@@ -601,6 +638,17 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
             if (it != this->SelectedMonitor)
                 this->SelectedMonitor = it;
 
+            auto dialogs = it->GetClients(-1, FloatingStatus::FSFloating);
+
+            for (auto dialog : dialogs)
+            {
+                if (dialog->GetParent() == c)
+                {
+                    c = dialog;
+                    break;
+                }
+            }
+
             this->SelectClient(c);
 
             break;
@@ -645,15 +693,18 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
     if (WIDGETS_CLICKABLE && !ClickGrabbed)
     {
 
-        for (auto w : this->Widgets)
+        for (auto mon : this->Monitors)
         {
-            Rect rect = w->GetRect();
-
-            if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+            for (auto w : mon->GetWidgets())
             {
-                w->Click(e.button, this);
-                ClickGrabbed = True;
-                break;
+                Rect rect = w->GetRect();
+
+                if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+                {
+                    w->Click(e.button, this);
+                    ClickGrabbed = True;
+                    break;
+                }
             }
         }
     }
@@ -904,10 +955,23 @@ int Manager::Run()
 
     this->Config();
     this->DrawBars();
+    this->UpdateWidgets();
 
     LOG(INFO) << "Starts....";
+
+    std::chrono::time_point start = std::chrono::steady_clock::now();
+
     while (IsRunning)
     {
+
+        if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start).count() > 30)
+        {
+            start = std::chrono::steady_clock::now();
+            this->UpdateWidgets();
+        }
+
+        if (XPending(this->CurrentDisplay) == 0)
+            continue;
 
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);

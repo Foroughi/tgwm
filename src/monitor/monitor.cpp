@@ -124,12 +124,7 @@ void Monitor::Sort()
     int cNum = clients.size();
 
     LOG(INFO) << "Sorting : " << cNum;
-
-    for (auto c : clients)
-    {
-        LOG(INFO) << "Sorting Clients: " << c->GetFloatStatus();
-    }
-
+        
     if (cNum == 0)
         return;
 
@@ -216,6 +211,11 @@ void Monitor::SetLayout(Layouts layout)
     this->_Layout = layout;
 }
 
+Layouts Monitor::GetLayout()
+{
+    return this->_Layout;
+}
+
 void Monitor::RemoveClient(Client *client)
 {
 
@@ -266,4 +266,14 @@ Client *Monitor::FindByWindow(Window win)
             return it;
 
     return NULL;
+}
+
+void Monitor::SetWidgets(std::vector<Widget*> widgets)
+{
+    this->Widgets = widgets;
+}
+
+std::vector<Widget*> Monitor::GetWidgets()
+{
+    return this->Widgets;
 }

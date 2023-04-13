@@ -4,7 +4,7 @@
 #include <X11/Xlib.h>
 #include <vector>
 #include "../monitor/monitor.hpp"
-#include "../widget/widget.hpp"
+
 
 class Manager
 {
@@ -18,7 +18,7 @@ private:
     Client *SelectedClient;
     bool IsRunning;
     void Config();     
-    std::vector<Widget*> Widgets = {};
+    
     bool IsUpdatingWidgets = False;
     Atom NET_Atom[NetLast];
     Atom WM_Atom[WMLast];
@@ -60,6 +60,7 @@ public:
     void DrawWidgets();
     void UpdateWidgets();
     void SortAll();
+    void Reload();
     void onSelectedTagChanged(int Index);    
     Display* GetDisplay();
     void OnClientMessage(XClientMessageEvent &e);

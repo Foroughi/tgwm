@@ -67,6 +67,7 @@ void Client::SetSize(int x, int y)
 {
     XResizeWindow(this->_Display, this->Frame, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
     XResizeWindow(this->_Display, this->Win, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
+    LOG(INFO) << "Setting size of " << this->Win << " to " << x - (BORDER_WIDTH * 2) << ", " << y - (BORDER_WIDTH * 2);
 }
 
 Loc Client::GetLocation()
