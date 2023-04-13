@@ -265,15 +265,27 @@ namespace CONFIG
             [](Widget *w, Monitor *mon)
             {
                 auto layout = mon->GetLayout();
+                std::string layoutStr = "";
 
                 if (layout == Layouts::Layouts_Horizontal)
+                {
+                    layoutStr = "Hor";
                     w->SetIcon(ICON_FA_ARROWS_UP_DOWN);
+                }
                 else if (layout == Layouts::Layouts_Vertical)
+                {
+                    layoutStr = "Ver";
                     w->SetIcon(ICON_FA_ARROWS_LEFT_RIGHT);
+                }
                 else
+                {
+                    layoutStr = "Foc";
                     w->SetIcon(ICON_FA_WINDOW_MAXIMIZE);
+                }
 
-                return "";
+                w->SetValue(layoutStr);
+                return layoutStr;
+                
             },
             [](int button, Manager *manager , Widget * widget)
             {
@@ -328,15 +340,26 @@ namespace CONFIG
             [](Widget *w, Monitor *mon)
             {
                 auto layout = mon->GetLayout();
+                std::string layoutStr = "";
 
                 if (layout == Layouts::Layouts_Horizontal)
+                {
+                    layoutStr = "Hor";
                     w->SetIcon(ICON_FA_ARROWS_UP_DOWN);
+                }
                 else if (layout == Layouts::Layouts_Vertical)
+                {
+                    layoutStr = "Ver";
                     w->SetIcon(ICON_FA_ARROWS_LEFT_RIGHT);
+                }
                 else
+                {
+                    layoutStr = "Foc";
                     w->SetIcon(ICON_FA_WINDOW_MAXIMIZE);
+                }
 
-                return "";
+                w->SetValue(layoutStr);
+                return layoutStr;
             },
             [](int button, Manager *manager , Widget * widget)
             {

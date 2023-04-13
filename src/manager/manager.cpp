@@ -276,7 +276,7 @@ void Manager::DrawWidgets()
                 w->SetChangeStatus(false);
 
                 // reset the widget
-                XftDrawRect(d, &bgColor, mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
+                XftDrawRect(d, &bgColor, mon->GetSize().x - width - extents.width - 9, GAP - 2, extents.width + 22, TOP_BAR_HEIGHT + GAP);
 
                 XftColor selectedcolor;
                 XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
