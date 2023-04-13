@@ -4,6 +4,7 @@
 
 Widget::Widget(std::string name, std::string color, std::string icon, std::vector<bool> MonitorDisplayStatus, std::function<std::string(Widget * , Monitor *)> updateFunction, std::function<void(int, Manager *mananger)> clickFunction) : Name(name), Color(color), Icon(icon), MonitorDisplayStatus(MonitorDisplayStatus), OnUpdate(updateFunction), OnClick(clickFunction)
 {
+    this->Value = "...";
 }
 
 Widget::~Widget()
@@ -38,7 +39,7 @@ int Widget::GetInterval()
 std::string Widget::Update(Monitor *mon)
 {
     try
-    {
+    {        
         return this->OnUpdate(this , mon);
     }
     catch (const std::exception &e)
@@ -51,6 +52,12 @@ std::string Widget::GetValue()
 {
     return this->Value;
 }
+
+void Widget::SetValue(std::string value)
+{
+    this->Value = value;
+}
+
 
 void Widget::Click(int button, Manager *manager)
 {

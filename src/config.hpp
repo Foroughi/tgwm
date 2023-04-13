@@ -262,7 +262,8 @@ namespace CONFIG
                 else
                     manager->GetMonitor(0)->SetLayout(Layouts::Layouts_Horizontal);
 
-                manager->DrawBars();
+                manager->UpdateWidgets();
+                manager->SortAll();
             }),
 
         // Layout Mon 2
@@ -293,7 +294,8 @@ namespace CONFIG
                 else
                     manager->GetMonitor(1)->SetLayout(Layouts::Layouts_Horizontal);
                 
-                manager->DrawBars();
+                manager->UpdateWidgets();
+                manager->SortAll();
             }),
     };
 

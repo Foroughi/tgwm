@@ -116,7 +116,8 @@ Manager::~Manager()
     XCloseDisplay(this->CurrentDisplay);
 }
 
-void Manager::Reload(){
+void Manager::Reload()
+{
     this->DrawBars();
     this->SortAll();
 }
@@ -130,7 +131,7 @@ void Manager::DrawBars()
         this->DrawBar(it);
     }
 
-    this->UpdateWidgets();
+    // this->UpdateWidgets();
 }
 
 void Manager::DrawBar(Monitor *mon)
@@ -246,7 +247,7 @@ void Manager::DrawWidgets()
         XftColor bgColor;
         XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), "#000000", &bgColor);
 
-        XftDrawRect(d, &bgColor, mon->GetSize().x - 600, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
+        // XftDrawRect(d, &bgColor, mon->GetSize().x - 600, 0, mon->GetSize().x - GAP, TOP_BAR_HEIGHT);
 
         auto width = (2 * GAP) + 20;
 
@@ -256,11 +257,15 @@ void Manager::DrawWidgets()
 
             if (w->GetMonitorDisplayStatus()[i])
             {
-                XftColor selectedcolor;
-                XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
                 XGlyphInfo extents;
                 XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)value.data(), strlen(value.data()), &extents);
+
+                //reset the widget
+                XftDrawRect(d, &bgColor, mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
+
+                XftColor selectedcolor;
+                XftColorAllocName(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), w->GetColor().c_str(), &selectedcolor);
 
                 XftDrawStringUtf8(d, &selectedcolor, iconfont, mon->GetSize().x - width - extents.width - 7, 18, (const FcChar8 *)w->GetIcon().c_str(), 3);
 
@@ -431,16 +436,11 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
 
-    
-
     this->Update_NET_CLIENT_LIST();
 
     this->DrawBars();
 
-
     this->SelectedMonitor->Sort();
-
-    
 }
 
 Client *Manager::FindClientByWin(Window win)
@@ -506,29 +506,27 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
         if (c != NULL)
         {
 
-            //const Window frame = c->GetFrame();
-            //XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
-            // LOG(INFO) << "Reframing " << e.window;    
+            // const Window frame = c->GetFrame();
+            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
+            //  LOG(INFO) << "Reframing " << e.window;
 
             changes.x = 0;
             changes.y = 0;
             changes.width = c->GetSize().x;
 
-            //I am not crazy , some QT app should made a small change in their size , so they react to that change 
-            // here i reduse the height by 1 on change it back.
+            // I am not crazy , some QT app should made a small change in their size , so they react to that change
+            //  here i reduse the height by 1 on change it back.
             changes.height = c->GetSize().y - 1;
-            
+
             XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
 
             changes.height = c->GetSize().y;
-            
+
             XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-            
+
             LOG(INFO) << "Resize " << e.window << " to " << changes.width << " " << changes.height;
             LOG(INFO) << "Move " << e.window << " to " << changes.x << " " << changes.y;
         }
-        
-        
     }
 }
 
@@ -543,7 +541,7 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)
 {
-    //LOG(INFO) << "Creating " << e.window;
+    // LOG(INFO) << "Creating " << e.window;
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
@@ -560,11 +558,8 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 
     const Window win = c->GetWindow();
 
-    
-
     this->SelectedMonitor->RemoveClient(c);
     delete c;
-
 
     LOG(INFO) << "Destroyed window " << win << " [" << frame << "]";
 
@@ -623,7 +618,7 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
         this->SelectClient(NULL);
 
         return;
-    } 
+    }
 
     for (auto it : this->Monitors)
     {
@@ -635,14 +630,14 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
 
             if (it != this->SelectedMonitor)
                 this->SelectedMonitor = it;
-            
-            auto dialogs = it->GetClients(-1 , FloatingStatus::FSFloating);
 
-            for(auto dialog : dialogs)
+            auto dialogs = it->GetClients(-1, FloatingStatus::FSFloating);
+
+            for (auto dialog : dialogs)
             {
-                if(dialog->GetParent() == c)
+                if (dialog->GetParent() == c)
                 {
-                    c = dialog;    
+                    c = dialog;
                     break;
                 }
             }
@@ -950,15 +945,28 @@ int Manager::Run()
 
     this->Config();
     this->DrawBars();
+    this->UpdateWidgets();
 
     LOG(INFO) << "Starts....";
+
+    std::chrono::time_point start = std::chrono::steady_clock::now();
+
     while (IsRunning)
     {
 
+        if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start).count() > 30)
+        {
+            start = std::chrono::steady_clock::now();
+            this->UpdateWidgets();
+        }
+
+        if (XPending(this->CurrentDisplay) == 0)
+            continue;
+
         XEvent e;
         XNextEvent(this->CurrentDisplay, &e);
-        //if (e.type != MotionNotify)
-            //LOG(INFO) << "Received event: " << ToString(e);
+        // if (e.type != MotionNotify)
+        // LOG(INFO) << "Received event: " << ToString(e);
 
         switch (e.type)
         {

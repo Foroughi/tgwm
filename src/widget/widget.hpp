@@ -31,6 +31,7 @@ public:
     int GetInterval();
     std::string Update(Monitor *mon);
     std::string GetValue();
+    void SetValue(std::string value);
     void Click(int button, Manager *mananger);
     std::function<std::string(Widget * , Monitor *)> OnUpdate;
     std::function<void(int, Manager *)> OnClick;
