@@ -124,3 +124,13 @@ void Client::SetParent(Client *parent)
 {
     this->Parent = parent;
 }
+
+int Client::GetPriority()
+{
+    return this->priority;
+}
+
+void Client::SetPriority(int priority)
+{
+    this->priority = priority;
+}

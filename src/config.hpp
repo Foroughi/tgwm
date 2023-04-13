@@ -81,7 +81,7 @@ namespace CONFIG
     inline std::vector<Layouts> DefaultLayouts =
         {
 
-            Layouts_Vertical,
+            Layouts_Focus,
             Layouts_Horizontal,
 
     };
@@ -541,6 +541,106 @@ namespace CONFIG
         {XK_F5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
              manager->Reload();
+         }},
+
+        // Mod + Numeric 1
+        {XK_KP_1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            
+            if(clients.size() < 2)
+                return;
+
+            std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+            clients.at(0)->SetPriority(0);
+            clients.at(1)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+         }},
+
+        // Mod + Numeric 2
+        {XK_KP_2, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+
+            if(clients.size() < 3)
+                return;
+            
+            std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+            clients.at(0)->SetPriority(0);
+            clients.at(2)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+         }},
+
+        // Mod + Numeric 3
+        {XK_KP_3, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+
+            if(clients.size() < 4)
+                return;
+            
+            std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+            clients.at(0)->SetPriority(0);
+            clients.at(3)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+         }},
+
+        // Mod + Numeric 4
+        {XK_KP_4, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+
+            if(clients.size() < 5)
+                return;
+            
+            std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+            clients.at(0)->SetPriority(0);
+            clients.at(4)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+         }},
+
+        // Mod + Numeric 5
+        {XK_KP_5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+
+            if(clients.size() < 6)
+                return;
+            
+            std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+            clients.at(0)->SetPriority(0);
+            clients.at(5)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
          }},
 
         // Mod + Space

@@ -124,13 +124,13 @@ void Monitor::Sort()
     int cNum = clients.size();
 
     LOG(INFO) << "Sorting : " << cNum;
-        
+
     if (cNum == 0)
         return;
 
     int i = 0;
 
-    if (this->_Layout == Layouts_Vertical)
+    if (cNum == 1 || this->_Layout == Layouts_Vertical)
     {
 
         int w = this->GetSize().x / cNum;
@@ -155,6 +155,38 @@ void Monitor::Sort()
         {
             c->SetSize(w - (GAP * 2), y - (GAP * 2));
             c->SetLocation(GAP + this->GetLoc().x, (y * i) + TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
+            i++;
+
+            this->SortDialogs(c);
+        }
+    }
+
+    else if (this->_Layout == Layouts_Focus)
+    {
+        int w = this->GetSize().x;
+        int y = (this->GetSize().y - TOP_BAR_HEIGHT);
+
+        std::sort(clients.begin(), clients.end(),
+                  [](Client *const &a, Client *const &b)
+                  {
+                      return a->GetPriority() > b->GetPriority();
+                  });
+
+        for (auto c : clients)
+        {
+            if (i == 0)
+            {
+                c->SetSize(((w * 70) / 100) - (GAP * 2), y - (GAP * 2));
+                c->SetLocation(GAP + this->GetLoc().x, TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
+            }
+            else
+            {
+                int y2 = (this->GetSize().y - TOP_BAR_HEIGHT) / (cNum - 1);
+
+                c->SetSize(((w * 30) / 100) - (GAP * 2), y2 - (GAP * 2));
+                c->SetLocation(((w * 70) / 100) + GAP + this->GetLoc().x, (y2 * (i - 1)) + TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
+            }
+
             i++;
 
             this->SortDialogs(c);
@@ -196,6 +228,9 @@ void Monitor::AddClient(Display *display, Client *parent, Window frame, Window w
 
     c->SetFloatStatus(isFloating);
     c->SetParent(parent);
+
+    if (this->Clients.size() == 0)
+        c->SetPriority(1);
 
     this->Clients.push_back(c);
 }
@@ -268,12 +303,12 @@ Client *Monitor::FindByWindow(Window win)
     return NULL;
 }
 
-void Monitor::SetWidgets(std::vector<Widget*> widgets)
+void Monitor::SetWidgets(std::vector<Widget *> widgets)
 {
     this->Widgets = widgets;
 }
 
-std::vector<Widget*> Monitor::GetWidgets()
+std::vector<Widget *> Monitor::GetWidgets()
 {
     return this->Widgets;
 }
