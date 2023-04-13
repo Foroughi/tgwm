@@ -653,7 +653,9 @@ namespace CONFIG
              else if (layout == "us")
                  start("setxkbmap de");
 
-             manager->DrawBars();
+            manager->GetMonitor(0)->GetWidgets().at(7)->SetChangeStatus(true);
+            manager->UpdateWidgets();
+
          }}};
 
 }
