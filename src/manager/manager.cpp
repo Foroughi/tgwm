@@ -119,6 +119,17 @@ Manager::~Manager()
 
 void Manager::Reload()
 {
+
+    for (auto it : this->Monitors)
+    {
+        for (auto w : it->GetWidgets())
+        {
+            w->SetChangeStatus(true);
+        }
+        
+    }
+
+    this->UpdateWidgets();
     this->DrawBars();
     this->SortAll();
 }
