@@ -22,7 +22,7 @@ cd tgwm
 sudo make install
 ```
 
-make sure you change your `.xinit` file to bootstrap the `tgwm` using the following command
+make sure you change your `.xinitrc` file to bootstrap the `tgwm` using the following command
 ```
 exec tgwm
 ```
