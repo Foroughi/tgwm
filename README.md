@@ -1,5 +1,5 @@
 # TG Window manager
-This is my personal Debian (I checked and it also works properly in Arch) window manager based-on X11. Even though I did my best to keep it configurable and customizable for any setup, but still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
+This is my personal Debian/Arch window manager based-on X11. Even though I did my best to keep it configurable and customizable for any setup, but still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
 
 Also any bug report, ideas or suggestions will be appreciated. Also, lots of features yet are missing which I try to do more on the weekends or in my spare time.
 
