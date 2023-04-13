@@ -267,3 +267,13 @@ Client *Monitor::FindByWindow(Window win)
 
     return NULL;
 }
+
+void Monitor::SetWidgets(std::vector<Widget*> widgets)
+{
+    this->Widgets = widgets;
+}
+
+std::vector<Widget*> Monitor::GetWidgets()
+{
+    return this->Widgets;
+}

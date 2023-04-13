@@ -61,6 +61,7 @@ void Manager::Config()
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
+            mon->SetWidgets(CONFIG::Widgets.at(i));
             this->Monitors.push_back(mon);
         }
 
@@ -94,6 +95,8 @@ void Manager::Config()
             this->DrawBars();
         };
 
+        mon->SetWidgets(CONFIG::Widgets.at(0));
+
         this->Monitors.push_back(mon);
     }
 
@@ -107,8 +110,6 @@ void Manager::onSelectedTagChanged(int Index)
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
 {
     this->IsRunning = True;
-
-    this->Widgets = CONFIG::Widgets;
 }
 
 Manager::~Manager()
@@ -251,17 +252,19 @@ void Manager::DrawWidgets()
 
         auto width = (2 * GAP) + 20;
 
-        for (auto w : this->Widgets)
+        for (auto w : mon->GetWidgets())
         {
             auto value = w->Update(mon);
 
-            if (w->GetMonitorDisplayStatus()[i])
+            XGlyphInfo extents;
+            XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)value.data(), strlen(value.data()), &extents);
+
+            if (w->GetChangeStatus())
             {
+                
+                w->SetChangeStatus(false);
 
-                XGlyphInfo extents;
-                XftTextExtentsUtf8(this->CurrentDisplay, font, (FcChar8 *)value.data(), strlen(value.data()), &extents);
-
-                //reset the widget
+                // reset the widget
                 XftDrawRect(d, &bgColor, mon->GetSize().x - width - extents.width - 9, GAP, extents.width + 22, TOP_BAR_HEIGHT + GAP);
 
                 XftColor selectedcolor;
@@ -280,6 +283,10 @@ void Manager::DrawWidgets()
                 width += extents.width + 27;
 
                 XftColorFree(this->CurrentDisplay, DefaultVisual(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), DefaultColormap(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay)), &selectedcolor);
+            }
+            else
+            {
+                width += extents.width + 27;
             }
         }
 
@@ -686,15 +693,18 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
     if (WIDGETS_CLICKABLE && !ClickGrabbed)
     {
 
-        for (auto w : this->Widgets)
+        for (auto mon : this->Monitors)
         {
-            Rect rect = w->GetRect();
-
-            if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+            for (auto w : mon->GetWidgets())
             {
-                w->Click(e.button, this);
-                ClickGrabbed = True;
-                break;
+                Rect rect = w->GetRect();
+
+                if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+                {
+                    w->Click(e.button, this);
+                    ClickGrabbed = True;
+                    break;
+                }
             }
         }
     }

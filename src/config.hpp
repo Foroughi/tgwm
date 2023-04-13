@@ -124,39 +124,55 @@ namespace CONFIG
     /*================================================ Widgets ============================================*/
     /*=====================================================================================================*/
 
-    inline std::vector<Widget *> Widgets = {
+    inline std::vector<Widget *> Mon1Widgets = {
 
         // System Widget
         new Widget(
-            "system", Colors[11], ICON_FA_POWER_OFF, {true, false},
+            "system", Colors[11], ICON_FA_POWER_OFF, 
             [](Widget *w, Monitor *mon)
             {
                 return "";
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 start("rofi -show power-menu -modi power-menu:\"~/.config/rofi/rofi-power-menu\" -config ~/.config/rofi/config.rasi");
             }),
 
         // Time Widget
         new Widget(
-            "time", Colors[0], ICON_FA_CLOCK, {true, true},
+            "time", Colors[0], ICON_FA_CLOCK, 
             [](Widget *w, Monitor *mon)
             {
-                return GetTime();
+                auto time = GetTime();
+
+                if(time != w->GetValue())
+                {
+                    w->SetValue(time);                    
+                }
+
+                return time;
             },
-            [](int button, Manager *manager) {}),
+            [](int button, Manager *manager , Widget * widget) {}),
 
         // Date Widget
         new Widget(
-            "date", Colors[1], ICON_FA_CALENDAR, {true, true},
+            "date", Colors[1], ICON_FA_CALENDAR, 
             [](Widget *w, Monitor *mon)
-            { return GetDate(); },
-            [](int button, Manager *manager) {}),
+            { 
+                auto date = GetDate(); 
+
+                if(date != w->GetValue())
+                {
+                    w->SetValue(date);                    
+                }
+
+                return date;
+            },
+            [](int button, Manager *manager , Widget * widget) {}),
 
         // Volume Widget
         new Widget(
-            "volumn", Colors[2], ICON_FA_VOLUME_HIGH, {true, false},
+            "volumn", Colors[2], ICON_FA_VOLUME_HIGH,
             [](Widget *w, Monitor *mon)
             {
                 std::string volumn = exec("amixer sget Master | grep 'Mono:' | awk -F'[][]' '{ print $2 }'");
@@ -165,7 +181,7 @@ namespace CONFIG
 
                 int volumnInt = std::stoi(volumn);
 
-                if (volumnInt < 30)
+                if (volumnInt < 30)                    
                     w->SetIcon(ICON_FA_VOLUME_OFF);
                 else if (volumnInt >= 30 && volumnInt < 60)
                     w->SetIcon(ICON_FA_VOLUME_LOW);
@@ -174,55 +190,63 @@ namespace CONFIG
 
                 return "";
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 start("pavucontrol");
             }),
 
         // Network Widget
         new Widget(
-            "network", Colors[3], ICON_FA_WIFI, {true, false},
+            "network", Colors[3], ICON_FA_WIFI,
             [](Widget *w, Monitor *mon)
             { return ""; },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 start("nm-connection-editor");
             }),
 
         // Cpu Widget
         new Widget(
-            "cpu", Colors[4], ICON_FA_MICROCHIP, {true, false},
+            "cpu", Colors[4], ICON_FA_MICROCHIP, 
             [](Widget *w, Monitor *mon)
             {
-                return exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
+                auto cpu = exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
+                w->SetValue(cpu);
+                return cpu;
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 start("kitty htop");
             }),
 
         // Memory Widget
         new Widget(
-            "memory", Colors[5], ICON_FA_MEMORY, {true, false},
+            "memory", Colors[5], ICON_FA_MEMORY, 
             [](Widget *w, Monitor *mon)
             {
                 std::string memory = exec("free -h | grep Mem:");
 
-                return memory.substr(16, 2) + "/" + memory.substr(27, 6);
+                memory = memory.substr(16, 2) + "/" + memory.substr(27, 6);
+
+                w->SetValue(memory);
+
+                return memory;
             },
-            [](int button, Manager *manager) {}),
+            [](int button, Manager *manager , Widget * widget) {}),
 
         // Memory Widget
         new Widget(
-            "keyboard", Colors[6], ICON_FA_KEYBOARD, {true, false},
+            "keyboard", Colors[6], ICON_FA_KEYBOARD,
             [](Widget *w, Monitor *mon)
             {
                 std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
                 for (auto &c : layout)
                     c = toupper(c);
+
+                w->SetValue(layout);
                 return layout;
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 std::string layout = exec("setxkbmap -query | grep layout").substr(12, 2);
 
@@ -230,13 +254,14 @@ namespace CONFIG
                     start("setxkbmap us");
                 else if (layout == "us")
                     start("setxkbmap de");
-
-                manager->DrawBars();
+                
+                widget->SetChangeStatus(true);
+                manager->UpdateWidgets();
             }),
 
         // Layout Mon 1
         new Widget(
-            "Layout", Colors[7], ICON_FA_KEYBOARD, {true, false},
+            "Layout", Colors[7], ICON_FA_KEYBOARD,
             [](Widget *w, Monitor *mon)
             {
                 auto layout = mon->GetLayout();
@@ -250,7 +275,7 @@ namespace CONFIG
 
                 return "";
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 auto layout = manager->GetMonitor(0)->GetLayout();
 
@@ -262,13 +287,44 @@ namespace CONFIG
                 else
                     manager->GetMonitor(0)->SetLayout(Layouts::Layouts_Horizontal);
 
+                widget->SetChangeStatus(true);
                 manager->UpdateWidgets();
                 manager->SortAll();
-            }),
+            }),        
+    };
+
+    inline std::vector<Widget *> Mon2Widgets = {
+
+        // Time Widget
+        new Widget(
+            "time", Colors[0], ICON_FA_CLOCK,
+            [](Widget *w, Monitor *mon)
+            {
+                auto time = GetTime();
+
+                w->SetValue(time);
+
+                return time;
+            },
+            [](int button, Manager *manager , Widget * widget) {}),
+
+        // Date Widget
+        new Widget(
+            "date", Colors[1], ICON_FA_CALENDAR,
+            [](Widget *w, Monitor *mon)
+            { 
+                auto date = GetDate();
+
+                w->SetValue(date);
+
+                return date; 
+            },
+            [](int button, Manager *manager , Widget * widget) {}),
+
 
         // Layout Mon 2
         new Widget(
-            "Layout", Colors[7], ICON_FA_KEYBOARD, {false, true},
+            "Layout", Colors[7], ICON_FA_KEYBOARD, 
             [](Widget *w, Monitor *mon)
             {
                 auto layout = mon->GetLayout();
@@ -282,7 +338,7 @@ namespace CONFIG
 
                 return "";
             },
-            [](int button, Manager *manager)
+            [](int button, Manager *manager , Widget * widget)
             {
                 auto layout = manager->GetMonitor(1)->GetLayout();
 
@@ -294,9 +350,14 @@ namespace CONFIG
                 else
                     manager->GetMonitor(1)->SetLayout(Layouts::Layouts_Horizontal);
                 
+                widget->SetChangeStatus(true);
                 manager->UpdateWidgets();
                 manager->SortAll();
             }),
+    };
+
+    inline std::vector<std::vector<Widget *>> Widgets = {
+        Mon1Widgets , Mon2Widgets
     };
 
     /*=====================================================================================================*/
