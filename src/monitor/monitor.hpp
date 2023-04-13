@@ -56,6 +56,7 @@ public:
     Layouts GetLayout();
     void SetWidgets(std::vector<Widget*> widgets);
     std::vector<Widget*> GetWidgets();
+    void UpdateWidget(std::string);
     void SortDialogs(Client* parent);
     std::function<void(int)> OnSelectedTagChanged = NULL;
 };

@@ -566,6 +566,23 @@ namespace CONFIG
              manager->Reload();
          }},
 
+        // Mod + F12
+        {XK_F12, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto layout = manager->GetSelectedMonitor()->GetLayout();
+
+            if(layout == Layouts_Horizontal)
+                manager->GetSelectedMonitor()->SetLayout(Layouts_Vertical);
+            else if(layout == Layouts_Vertical)
+                 manager->GetSelectedMonitor()->SetLayout(Layouts_Focus);
+            else 
+                manager->GetSelectedMonitor()->SetLayout(Layouts_Horizontal);                    
+            manager->GetSelectedMonitor()->Sort();
+
+            manager->GetSelectedMonitor()->UpdateWidget("Layout");
+            manager->UpdateWidgets();
+         }},
+
         // Mod + Numeric 1
         {XK_KP_1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
@@ -676,7 +693,7 @@ namespace CONFIG
              else if (layout == "us")
                  start("setxkbmap de");
 
-            manager->GetMonitor(0)->GetWidgets().at(7)->SetChangeStatus(true);
+            manager->GetSelectedMonitor()->UpdateWidget("keyboard");
             manager->UpdateWidgets();
 
          }}};

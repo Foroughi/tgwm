@@ -312,3 +312,12 @@ std::vector<Widget *> Monitor::GetWidgets()
 {
     return this->Widgets;
 }
+
+void Monitor::UpdateWidget(std::string name)
+{
+    for(auto w : this->Widgets)
+    {
+        if(w->GetName() == name)
+            w->SetChangeStatus(true);
+    }
+}
