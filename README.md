@@ -16,6 +16,7 @@ The following libraries have been used :
 
 Note : Make sure you have the necessary dependencies mentioned in the previous section installed.
 
+#### To start it manually with StartX
 ```
 git clone https://github.com/Foroughi/tgwm.git
 cd tgwm
@@ -25,6 +26,14 @@ sudo make install
 make sure you change your `.xinitrc` file to bootstrap the `tgwm` using the following command
 ```
 exec tgwm
+```
+#### To start it with Display Manager
+Add a new Xsession desktop file `/usr/share/xsessions/tgwm.desktop` with the following content
+```
+[Desktop Entry]
+Name=TGWM
+Exec=tgwm
+Type=XSession
 ```
 
 ### Uninstall
