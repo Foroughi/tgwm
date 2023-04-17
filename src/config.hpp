@@ -25,8 +25,10 @@
 #define TAGGAP 5
 #define BORDER_WIDTH 3
 #ifdef TGWMDEBUG
+/* This Hotkey will be used if the app is started with Xephyr*/
 #define HOTKEY Mod1Mask
 #else
+/* In normal situation , when you start the app with startx or a linux DM , the TGWMDEBUG does not have a value and this hotkey will be used*/
 #define HOTKEY Mod4Mask
 #endif
 #define TAGS_HOVERABLE 0
