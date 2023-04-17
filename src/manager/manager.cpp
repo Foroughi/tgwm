@@ -925,6 +925,13 @@ int Manager::SendEvent(Client *c, Atom proto)
     return exists;
 }
 
+void Manager::EnableDubugMod()
+{
+    this->DebugMode = True;
+    #define TGWM_DEBUG 1
+}
+
+
 int Manager::Run()
 {
 

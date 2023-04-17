@@ -18,7 +18,7 @@ private:
     Client *SelectedClient;
     bool IsRunning;
     void Config();     
-    
+    bool DebugMode = False;
     bool IsUpdatingWidgets = False;
     Atom NET_Atom[NetLast];
     Atom WM_Atom[WMLast];
@@ -27,6 +27,7 @@ public:
     Manager(Display *display);
     ~Manager();
 
+    void EnableDubugMod();    
     void Update_NET_CLIENT_LIST();
     void DrawBars();
     void DrawBar(Monitor *mon);

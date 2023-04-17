@@ -11,6 +11,11 @@ int main(int argc, char **argv)
        
     Manager* wm = new Manager(XOpenDisplay(NULL));
 
+    #ifdef TGWMDEBUG
+    LOG(INFO) << "=======DEBUG MODE========";
+    wm->EnableDubugMod();
+    #endif
+    
     auto res = wm->Run();         
 
     return res;

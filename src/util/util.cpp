@@ -76,9 +76,8 @@ void *ecalloc(size_t nmemb, size_t size)
 void Log(std::string log)
 {
 
-    std::ofstream MyFile("tgwm-log");
-    MyFile << log;
-    MyFile.close();
+    
+    
 }
 
 void DrawText(Display *display, Drawable drawable, int screen, std::string Color, int x, int y, char *text)

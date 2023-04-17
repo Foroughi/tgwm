@@ -24,7 +24,11 @@
 #define GAP 7
 #define TAGGAP 5
 #define BORDER_WIDTH 3
+#ifdef TGWMDEBUG
+#define HOTKEY Mod1Mask
+#else
 #define HOTKEY Mod4Mask
+#endif
 #define TAGS_HOVERABLE 0
 #define TAGS_CLICKABLE 0
 #define WIDGETS_HOVERABLE 0
@@ -42,7 +46,7 @@
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {
     start("nitrogen --restore");
-    start("compton");
+    start("picom");
 };
 
 /*=====================================================================================================*/
@@ -74,7 +78,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 
 namespace CONFIG
 {
-
+    
     /*=====================================================================================================*/
     /*============================================ Default Layouts ========================================*/
     /*=====================================================================================================*/
@@ -389,7 +393,7 @@ namespace CONFIG
     /*=============================================== Bindings ============================================*/
     /*=====================================================================================================*/
     inline std::vector<std::tuple<int, int, std::function<void(Manager *, const XKeyEvent)>>> Keys = {
-
+        
         // Mod + F1
         {XK_F1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
@@ -588,7 +592,7 @@ namespace CONFIG
         // Mod + Numeric 1
         {XK_KP_1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
             
             if(clients.size() < 2)
                 return;
@@ -608,7 +612,7 @@ namespace CONFIG
         // Mod + Numeric 2
         {XK_KP_2, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
 
             if(clients.size() < 3)
                 return;
@@ -628,7 +632,7 @@ namespace CONFIG
         // Mod + Numeric 3
         {XK_KP_3, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
 
             if(clients.size() < 4)
                 return;
@@ -648,7 +652,7 @@ namespace CONFIG
         // Mod + Numeric 4
         {XK_KP_4, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
 
             if(clients.size() < 5)
                 return;
@@ -668,7 +672,7 @@ namespace CONFIG
         // Mod + Numeric 5
         {XK_KP_5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            auto clients = manager->GetSelectedMonitor()->GetClients(-1 , FloatingStatus::FSNormal);
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
 
             if(clients.size() < 6)
                 return;

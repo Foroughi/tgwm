@@ -18,9 +18,9 @@ FREETYPEINC = /usr/include/freetype2
 INCS = -I${X11INC} -I${FREETYPEINC} 
 LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}  -lglog -pthread 
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-CXXFLAGS   = -std=c++17 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS}
-LDFLAGS  = ${LIBS}
+CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS} 
+CXXFLAGS   = -std=c++17 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS} ${DEBUGMODEFLAG}
+LDFLAGS  = ${LIBS} 
 
 all: tgwm clean
 
@@ -31,7 +31,6 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 tgwm: $(HEADERS) $(OBJECTS)
 	$(CXX) -o out/$@ $(OBJECTS) $(LDFLAGS)
-
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
