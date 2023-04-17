@@ -1,7 +1,7 @@
 # TG Window manager
-This is my personal Debian window manager based-on X11. Even though I did my best to keep it configurable and customizable for any setup, but still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
+This is my personal Debian/Arch window manager based-on X11. Even though I did my best to keep it configurable and customizable for any setup, but still there are some codes which are customized specifically for my hardware/monitor setup. So in case, you wanted to use it, make sure you make the necessary changes accordingly. 
 
-Also, it's safe to say that since this repository is still under development, there is a good chance of encountering bugs or failures. But any bug report, ideas or suggestions will be appreciated. Also, lots of features yet are missing which I try to do more on the weekends or in my spare time.
+Also any bug report, ideas or suggestions will be appreciated. Also, lots of features yet are missing which I try to do more on the weekends or in my spare time.
 
 ### Dependencies
 The following libraries have been used :
@@ -16,15 +16,24 @@ The following libraries have been used :
 
 Note : Make sure you have the necessary dependencies mentioned in the previous section installed.
 
+#### To start it manually with StartX :
 ```
 git clone https://github.com/Foroughi/tgwm.git
 cd tgwm
 sudo make install
 ```
 
-make sure you change your `.xinit` file to bootstrap the `tgwm` using the following command
+make sure you change your `.xinitrc` file to bootstrap the `tgwm` using the following command
 ```
 exec tgwm
+```
+#### To start it with Display Manager :
+Add a new Xsession desktop file `/usr/share/xsessions/tgwm.desktop` with the following content
+```
+[Desktop Entry]
+Name=TGWM
+Exec=tgwm
+Type=XSession
 ```
 
 ### Uninstall
