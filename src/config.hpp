@@ -48,14 +48,14 @@
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {
     start("nitrogen --restore");
-    start("picom");
+    start("picom -b");
 };
 
 /*=====================================================================================================*/
 /*================================================ Fonts ==============================================*/
 /*=====================================================================================================*/
-#define TOPBAR_FONT "monospace-7:style=Bold"
-#define TOPBAR_FONT_SUB "monospace-4:style=Bold"
+#define TOPBAR_FONT "hack-6:style=Bold"
+#define TOPBAR_FONT_SUB "hack-4:style=Bold"
 #define ICON_FONT "Font Awesome 6 Free:size=7:style=Solid"
 
 /*=====================================================================================================*/
