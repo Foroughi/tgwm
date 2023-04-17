@@ -253,6 +253,8 @@ namespace CONFIG
                 if (layout == "de")
                     start("setxkbmap us");
                 else if (layout == "us")
+                    start("setxkbmap ir");
+                else
                     start("setxkbmap de");
                 
                 widget->SetChangeStatus(true);
@@ -691,6 +693,8 @@ namespace CONFIG
              if (layout == "de")
                  start("setxkbmap us");
              else if (layout == "us")
+                 start("setxkbmap ir");
+            else
                  start("setxkbmap de");
 
             manager->GetSelectedMonitor()->UpdateWidget("keyboard");
