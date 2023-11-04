@@ -545,6 +545,9 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
             LOG(INFO) << "Resize " << e.window << " to " << changes.width << " " << changes.height;
             LOG(INFO) << "Move " << e.window << " to " << changes.x << " " << changes.y;
         }
+
+        XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
+        LOG(INFO) << "Resize " << e.window << " to " << e.width << e.height;
     }
 }
 

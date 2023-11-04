@@ -29,12 +29,14 @@ public:
     bool GetVisibilityStatus();
 
     Loc GetSize();
+    Loc GetWinSize();
     void SetSize(int x, int y);
 
     Window GetWindow();
     Window GetFrame();
 
     Loc GetLocation();
+    Loc GetWinLocation();
     void SetLocation(int x, int y);
 
     int GetTagIndex();

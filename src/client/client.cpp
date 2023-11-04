@@ -63,6 +63,19 @@ Loc Client::GetSize()
     return l;
 }
 
+Loc Client::GetWinSize()
+{
+
+    static XWindowAttributes wa;
+    !XGetWindowAttributes(this->_Display, this->Win, &wa);
+
+    Loc l;
+    l.x = wa.width;
+    l.y = wa.height;
+
+    return l;
+}
+
 void Client::SetSize(int x, int y)
 {
     XResizeWindow(this->_Display, this->Frame, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
@@ -82,6 +95,21 @@ Loc Client::GetLocation()
 
     return l;
 }
+
+Loc Client::GetWinLocation()
+{
+
+    static XWindowAttributes wa;
+    !XGetWindowAttributes(this->_Display, this->Win, &wa);
+
+    Loc l;
+    l.x = wa.x;
+    l.y = wa.y;
+
+    return l;
+}
+
+
 
 void Client::SetLocation(int x, int y)
 {

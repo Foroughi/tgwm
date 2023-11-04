@@ -54,9 +54,10 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 /*=====================================================================================================*/
 /*================================================ Fonts ==============================================*/
 /*=====================================================================================================*/
-#define TOPBAR_FONT "hack-6:style=Bold"
-#define TOPBAR_FONT_SUB "hack-4:style=Bold"
-#define ICON_FONT "Font Awesome 6 Free:size=7:style=Solid"
+
+#define TOPBAR_FONT "hack-11:style=Bold"
+#define TOPBAR_FONT_SUB "hack-8:style=Bold"
+#define ICON_FONT "Font Awesome 6 Free:size=11:style=Solid"
 
 /*=====================================================================================================*/
 /*================================================ Icons ==============================================*/
@@ -414,7 +415,7 @@ namespace CONFIG
                  LOG(INFO) << "Clients :\n";
                  for (auto it : mon->GetClients(-1, FSAll))
                  {
-                     LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ")\n";
+                     LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (Frame size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (Frame loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ") (Win size : "+ std::to_string(it->GetWinSize().x) + ":" + std::to_string(it->GetWinSize().y) +") (Win loc : "+ std::to_string(it->GetWinLocation().x) + ":" + std::to_string(it->GetWinLocation().y) +")\n";
                  }
              }
 
