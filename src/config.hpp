@@ -48,7 +48,7 @@
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {
     start("nitrogen --restore");
-    start("picom -b");
+    start("compton");
 };
 
 /*=====================================================================================================*/
@@ -566,7 +566,7 @@ namespace CONFIG
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty");
+             start("kitty tmux");
          }},
 
         // Mod + F5

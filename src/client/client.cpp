@@ -143,6 +143,18 @@ void Client::SetFloatStatus(bool status)
     this->Floating = status;
 }
 
+bool Client::GetFullscreen()
+{    
+    return this->isFullscreen;
+}
+
+void Client::SetFullscreen(bool status)
+{
+    this->isFullscreen = status;
+
+   
+}
+
 Client *Client::GetParent()
 {
     return this->Parent;

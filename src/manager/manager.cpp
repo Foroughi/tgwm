@@ -126,7 +126,6 @@ void Manager::Reload()
         {
             w->SetChangeStatus(true);
         }
-        
     }
 
     this->UpdateWidgets();
@@ -272,7 +271,7 @@ void Manager::DrawWidgets()
 
             if (w->GetChangeStatus())
             {
-                
+
                 w->SetChangeStatus(false);
 
                 // reset the widget
@@ -351,6 +350,11 @@ void Manager::OnClientMessage(XClientMessageEvent &e)
                 mon->SelectTagByIndex(c->GetTagIndex());
             }
         }
+        else if (e.message_type == NET_Atom[NetWMState])
+        {
+            if (e.data.l[1] == NET_Atom[NetWMFullscreen] || e.data.l[2] == NET_Atom[NetWMFullscreen])
+                this->ToggleClientFullscreen(this->GetDisplay(), mon, c, (e.data.l[0] == 1 || (e.data.l[0] == 2 && !c->GetFullscreen())));
+        }
     }
 }
 
@@ -386,6 +390,30 @@ void grabkeys(Display *dpy, Window win)
             XGrabKey(dpy, XKeysymToKeycode(dpy, std::get<0>(k)), std::get<1>(k) | m, win,
                      True, GrabModeAsync, GrabModeAsync);
         }
+    }
+}
+
+void Manager::ToggleClientFullscreen(Display *dpy, Monitor *mon, Client *client, int fullscreen)
+{
+    if (fullscreen && !client->GetFullscreen())
+    {
+
+        XChangeProperty(dpy, client->GetWindow(), this->NET_Atom[NetWMState], XA_ATOM, 32, PropModeReplace, (unsigned char *)&NET_Atom[NetWMFullscreen], 1);
+        client->SetFullscreen(true);
+
+        int w = mon->GetSize().x;
+        int y = (mon->GetSize().y - TOP_BAR_HEIGHT);
+
+        client->SetSize(w - (GAP * 2), y - TOP_BAR_HEIGHT - (GAP * 2) + 32);
+        client->SetLocation(GAP + mon->GetLoc().x, TOP_BAR_HEIGHT + GAP + mon->GetLoc().y);        
+
+    }
+    else if (!fullscreen && client->GetFullscreen())
+    {
+        XChangeProperty(dpy, client->GetWindow(), this->NET_Atom[NetWMState], XA_ATOM, 32, PropModeReplace, (unsigned char *)0, 0);
+
+        client->SetFullscreen(false);
+        mon->Sort();
     }
 }
 
@@ -931,9 +959,8 @@ int Manager::SendEvent(Client *c, Atom proto)
 void Manager::EnableDubugMod()
 {
     this->DebugMode = True;
-    #define TGWM_DEBUG 1
+#define TGWM_DEBUG 1
 }
-
 
 int Manager::Run()
 {

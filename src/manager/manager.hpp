@@ -70,6 +70,7 @@ public:
     Atom GetNETAtom(int atom);
     Atom GetWMAtom(int atom);
     Client* FindClientByWin(Window win);
+    void ToggleClientFullscreen(Display *dpy, Monitor* mon , Client *client, int fullscreen);
 
     
 };

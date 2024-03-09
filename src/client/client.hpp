@@ -18,6 +18,7 @@ private:
     bool Floating = False;
     Client* Parent = NULL;
     int priority = 0;
+    bool isFullscreen = False;
 
 public:
     Client(Display *display, Loc monitorLoc, Window Frame, Window window, int TagIndex);
@@ -47,6 +48,9 @@ public:
 
     bool GetFloatStatus();
     void SetFloatStatus(bool status);
+
+    bool GetFullscreen();
+    void SetFullscreen(bool status);
 
     Client* GetParent();
     void SetParent(Client* Parent);

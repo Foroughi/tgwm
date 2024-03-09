@@ -58,6 +58,7 @@ public:
     std::vector<Widget*> GetWidgets();
     void UpdateWidget(std::string);
     void SortDialogs(Client* parent);
+    
     std::function<void(int)> OnSelectedTagChanged = NULL;
 };
 
