@@ -49,6 +49,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {
     start("nitrogen --restore");
     start("compton");
+    start("kitty tmux");    
 };
 
 /*=====================================================================================================*/
