@@ -570,6 +570,12 @@ namespace CONFIG
              start("kitty tmux");
          }},
 
+        // Mod + Ctrl  + Enter
+        {XK_Return, HOTKEY | ControlMask , [](Manager *manager, const XKeyEvent &e)
+         {
+             start("kitty");
+         }},
+
         // Mod + F5
         {XK_F5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
