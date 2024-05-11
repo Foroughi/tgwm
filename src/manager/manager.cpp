@@ -58,6 +58,14 @@ void Manager::Config()
                 this->SortAll();
 
                 this->DrawBars();
+
+                auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();
+
+                Window win = currenTag->GetLastActiveWindow();
+
+                if(win != 0)
+                    this->SelectClient(this->SelectedMonitor->FindByFrame(win));
+
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
@@ -93,6 +101,17 @@ void Manager::Config()
         mon->OnSelectedTagChanged = [=](int Index)
         {
             this->DrawBars();
+
+
+            auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();
+
+            Window win = currenTag->GetLastActiveWindow();
+
+            if(win != 0)
+
+                this->SelectClient(this->SelectedMonitor->FindByFrame(win));
+
+
         };
 
         mon->SetWidgets(CONFIG::Widgets.at(0));
@@ -105,6 +124,9 @@ void Manager::Config()
 
 void Manager::onSelectedTagChanged(int Index)
 {
+
+    
+
 }
 
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
@@ -311,6 +333,8 @@ void Manager::Unframe(Window w)
 
     Client *c = this->SelectedMonitor->FindByWindow(w);
 
+    auto parent = c->GetParent();
+
     if (!c)
         return;
 
@@ -324,6 +348,17 @@ void Manager::Unframe(Window w)
     this->SelectedMonitor->RemoveClient(this->SelectedMonitor->FindByWindow(w));
     this->SelectedMonitor->Sort();
     this->DrawBars();
+
+    if(parent != NULL)
+    {
+        this->SelectClient(parent);
+    }
+    else
+    {
+        auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll);
+        if(clients.size() > 0)
+            this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll).at(0));
+    }
 }
 
 Display *Manager::GetDisplay()
@@ -481,6 +516,8 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
     LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
+
+    this->SelectClient(this->GetSelectedMonitor()->FindByFrame(frame));
 
     this->Update_NET_CLIENT_LIST();
 
@@ -661,8 +698,23 @@ void Manager::reparentAlreadyOpenWindows()
 
 void Manager::OnMouseEnter(const XCrossingEvent &e)
 {
+    return;
+    
+}
 
-    if (e.window == this->root)
+void Manager::OnMouseLeave(const XCrossingEvent &e)
+{
+}
+
+void Manager::OnButtonPress(XButtonPressedEvent &e)
+{
+
+    XAllowEvents(this->CurrentDisplay, ReplayPointer, CurrentTime);
+    XSync(this->CurrentDisplay, 0);
+
+    LOG(INFO) << "clicked" << e.subwindow;
+
+    if (e.subwindow == this->root)
     {
         this->SelectClient(NULL);
 
@@ -672,7 +724,7 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
     for (auto it : this->Monitors)
     {
 
-        auto c = it->FindByFrame(e.window);
+        auto c = it->FindByFrame(e.subwindow);
 
         if (c != NULL)
         {
@@ -696,60 +748,53 @@ void Manager::OnMouseEnter(const XCrossingEvent &e)
             break;
         }
     }
-}
 
-void Manager::OnMouseLeave(const XCrossingEvent &e)
-{
-}
+    // this->DrawBars();
+    // bool ClickGrabbed = False;
 
-void Manager::OnButtonPress(XButtonPressedEvent &e)
-{
-    this->DrawBars();
-    bool ClickGrabbed = False;
+    // if (TAGS_CLICKABLE && !ClickGrabbed)
+    // {
+    //     for (auto mon : this->Monitors)
+    //     {
 
-    if (TAGS_CLICKABLE && !ClickGrabbed)
-    {
-        for (auto mon : this->Monitors)
-        {
+    //         if (e.subwindow == mon->GetTopbar())
+    //         {
+    //             for (auto it : mon->GetTags())
+    //             {
 
-            if (e.subwindow == mon->GetTopbar())
-            {
-                for (auto it : mon->GetTags())
-                {
+    //                 if (it->GetHoverStatus())
+    //                 {
+    //                     mon->SelectTagByIndex(it->GetIndex());
+    //                     ClickGrabbed = True;
+    //                     this->DrawBar(mon);
+    //                     break;
+    //                 }
+    //             }
+    //         }
 
-                    if (it->GetHoverStatus())
-                    {
-                        mon->SelectTagByIndex(it->GetIndex());
-                        ClickGrabbed = True;
-                        this->DrawBar(mon);
-                        break;
-                    }
-                }
-            }
+    //         if (ClickGrabbed)
+    //             break;
+    //     }
+    // }
 
-            if (ClickGrabbed)
-                break;
-        }
-    }
+    // if (WIDGETS_CLICKABLE && !ClickGrabbed)
+    // {
 
-    if (WIDGETS_CLICKABLE && !ClickGrabbed)
-    {
+    //     for (auto mon : this->Monitors)
+    //     {
+    //         for (auto w : mon->GetWidgets())
+    //         {
+    //             Rect rect = w->GetRect();
 
-        for (auto mon : this->Monitors)
-        {
-            for (auto w : mon->GetWidgets())
-            {
-                Rect rect = w->GetRect();
-
-                if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
-                {
-                    w->Click(e.button, this);
-                    ClickGrabbed = True;
-                    break;
-                }
-            }
-        }
-    }
+    //             if (e.x > rect.x && e.x < (rect.x + rect.Width) && e.y > rect.y && e.y < (rect.y + rect.Height))
+    //             {
+    //                 w->Click(e.button, this);
+    //                 ClickGrabbed = True;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 void Manager::OnKeyPress(const XKeyEvent &e)
@@ -867,6 +912,9 @@ void Manager::SelectClient(Client *client)
         XSetWindowBorder(this->CurrentDisplay, this->SelectedClient->GetFrame(), CLIENT_SELECTED_BCOLOR);
 
         XSetInputFocus(this->CurrentDisplay, client->GetWindow(), RevertToPointerRoot, CurrentTime);
+
+        auto currentTag = this->GetSelectedMonitor()->GetSelectedTag();
+        currentTag->SetLastActiveWindow(client->GetFrame());
     }
     else
     {
@@ -889,6 +937,10 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
     }
 
     this->SelectedClient->SetTagIndex(index);
+
+    auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll);
+        if(clients.size() > 0)
+            this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll).at(0));
 }
 
 std::vector<Monitor *> Manager::GetMonitors()
@@ -995,9 +1047,14 @@ int Manager::Run()
         this->root,
         wa.event_mask);
 
-    XSync(this->CurrentDisplay, false);
+    XSync(this->CurrentDisplay, 0);
 
     grabkeys(this->CurrentDisplay, this->root);
+
+    XGrabButton(this->CurrentDisplay, Button1, AnyModifier, this->root, False, ButtonPressMask , GrabModeSync, GrabModeAsync, None, None);
+
+
+    
 
     XSetErrorHandler(OnXError);
 

@@ -42,3 +42,12 @@ void Tag::SetHoverStatus(bool status)
 {
     this->Hovered = status;
 }
+
+Window Tag::GetLastActiveWindow()
+{
+    return this->LastActiveWindow;
+}
+void Tag::SetLastActiveWindow(Window win)
+{
+    this->LastActiveWindow = win;
+}

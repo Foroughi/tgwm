@@ -617,6 +617,15 @@ namespace CONFIG
             clients.at(1)->SetPriority(1);            
             manager->GetSelectedMonitor()->Sort();
 
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 1)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+
          }},
 
         // Mod + Numeric 2
@@ -636,6 +645,20 @@ namespace CONFIG
             clients.at(0)->SetPriority(0);
             clients.at(2)->SetPriority(1);            
             manager->GetSelectedMonitor()->Sort();
+
+            clients.at(0)->SetPriority(0);
+            clients.at(1)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 1)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+
 
          }},
 
@@ -657,6 +680,20 @@ namespace CONFIG
             clients.at(3)->SetPriority(1);            
             manager->GetSelectedMonitor()->Sort();
 
+            clients.at(0)->SetPriority(0);
+            clients.at(1)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 1)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+
+
          }},
 
         // Mod + Numeric 4
@@ -677,6 +714,20 @@ namespace CONFIG
             clients.at(4)->SetPriority(1);            
             manager->GetSelectedMonitor()->Sort();
 
+            clients.at(0)->SetPriority(0);
+            clients.at(1)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 1)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+
+
          }},
 
         // Mod + Numeric 5
@@ -696,6 +747,64 @@ namespace CONFIG
             clients.at(0)->SetPriority(0);
             clients.at(5)->SetPriority(1);            
             manager->GetSelectedMonitor()->Sort();
+
+            clients.at(0)->SetPriority(0);
+            clients.at(1)->SetPriority(1);            
+            manager->GetSelectedMonitor()->Sort();
+
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 1)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+
+
+
+         }},
+
+
+         // Mod + Left
+        {XK_Left, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
+
+             if(clients.size() < 2)
+                return;
+          
+            for(auto client : clients)
+            {
+                if(client->GetPriority() != 0)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+            
+            
+
+         }},
+
+          // Mod + Right
+        {XK_Right, HOTKEY, [](Manager *manager, const XKeyEvent &e)
+         {
+            auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
+
+             if(clients.size() < 2)
+                return;
+          
+            for(auto client : clients)
+            {
+                if(client->GetPriority() == 0)
+                {
+                    manager->SelectClient(client);
+                    break;
+                }
+            }
+            
+            
 
          }},
 

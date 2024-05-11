@@ -14,6 +14,7 @@ private:
     Rect MouseRect;
     bool Hovered = False;
     int Index;
+    Window LastActiveWindow = 0;
 
 public:
     Tag(int Index, std::string name, std::string icon);
@@ -24,6 +25,9 @@ public:
 
     Rect GetRect();
     void SetRect(int x, int y, int w, int h);
+
+    Window GetLastActiveWindow();
+    void SetLastActiveWindow(Window win);
 
     bool GetHoverStatus();
     void SetHoverStatus(bool status);    
