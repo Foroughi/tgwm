@@ -476,6 +476,15 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
 
+    char *win_name;
+    XFetchName(this->GetDisplay() ,  w, &win_name);
+    LOG(INFO) << "Framing " << win_name;
+    
+    //ignoring conky windows
+    if (win_name != NULL &&  std::string(win_name).find("conky") != std::string::npos) {
+        return;
+    }
+
     if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
     {
         // a modal is being opened. That mean we dont consider it as a client.
@@ -485,6 +494,8 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
 
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
+
+    
 
     if (was_created_before_window_manager)
     {
