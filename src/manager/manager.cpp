@@ -1077,7 +1077,10 @@ int Manager::Run()
 
     std::chrono::time_point start = std::chrono::steady_clock::now();
 
-    while (IsRunning)
+    XEvent e;
+    ;
+
+    while (IsRunning && !XNextEvent(this->CurrentDisplay, &e))
     {
 
         if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start).count() > 30)
@@ -1086,11 +1089,11 @@ int Manager::Run()
             this->UpdateWidgets();
         }
 
-        if (XPending(this->CurrentDisplay) == 0)
-            continue;
+        // if (XPending(this->CurrentDisplay) == 0)
+        //     continue;
 
-        XEvent e;
-        XNextEvent(this->CurrentDisplay, &e);
+        
+        
         // if (e.type != MotionNotify)
         // LOG(INFO) << "Received event: " << ToString(e);
 
