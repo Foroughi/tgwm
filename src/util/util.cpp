@@ -19,10 +19,11 @@ void start(char *what)
 {
     if (!fork())
     {
-        char *const args[] = {"/bin/sh", "-c", what, NULL};
-        execvp("/bin/sh", args);
-        exit(1);
-    }
+        //char *const args[] = {"/bin/sh", "-c", what, NULL};
+        //char *const args[] = {"-c", what};
+        execl("/bin/sh", "/bin/sh" , "-c" , what , NULL);
+        //exit(1);
+    }    
 }
 
 std::string exec(const char *cmd)

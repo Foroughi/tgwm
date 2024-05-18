@@ -16,6 +16,7 @@
 #include "./util/util.hpp"
 #include <glog/logging.h>
 #include <cctype>
+#include <stdlib.h>
 
 /*=====================================================================================================*/
 /*=============================================== Configs =============================================*/
@@ -46,13 +47,11 @@
 /*=====================================================================================================*/
 
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
-{   
-    start("export TGWM=1"); 
+{       
     start("nitrogen --restore");
     start("picom -b");
     start("conky");
-    start("kitty tmux");        
-    start("dunstify \"Welcome back Ali\""); 
+    start("kitty tmux");            
 };
 
 /*=====================================================================================================*/
