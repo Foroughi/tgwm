@@ -1028,6 +1028,9 @@ void Manager::EnableDubugMod()
 int Manager::Run()
 {
 
+    auto utf8string = XInternAtom(this->CurrentDisplay, "UTF8_STRING", False);
+    auto WMCheckWin = XCreateSimpleWindow(this->CurrentDisplay, this->root, 0, 0, 1, 1, 0, 0, 0);
+
     this->NET_Atom[NetActiveWindow] = XInternAtom(this->CurrentDisplay, "_NET_ACTIVE_WINDOW", False);
     this->NET_Atom[NetSupported] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTED", False);
     this->NET_Atom[NetWMName] = XInternAtom(this->CurrentDisplay, "_NET_WM_NAME", False);
@@ -1043,8 +1046,15 @@ int Manager::Run()
     this->WM_Atom[WMState] = XInternAtom(this->CurrentDisplay, "WM_STATE", False);
     this->WM_Atom[WMTakeFocus] = XInternAtom(this->CurrentDisplay, "WM_TAKE_FOCUS", False);
 
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMCheck], XA_WINDOW, 32,
+		PropModeReplace, (unsigned char *) &this->root, 1);
+        
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMName], utf8string, 8,
+		PropModeReplace, (unsigned char *) "TGWM", 4);
+		
     XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetSupported], XA_ATOM, 32,
                     PropModeReplace, (unsigned char *)NET_Atom, NetLast);
+
     XDeleteProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetClientList]);
 
     XSetWindowAttributes wa;
