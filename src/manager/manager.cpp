@@ -172,8 +172,9 @@ void Manager::DrawBars()
 
 void Manager::DrawBar(Monitor *mon)
 {
+    if(TOPBAR != CONFIG::Topbars::Topbar_Integrated)
+        return;
 
-    return;
     XftColor color;
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
