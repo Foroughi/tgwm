@@ -42,7 +42,11 @@ enum
 	NetWMWindowType,
 	NetWMWindowTypeDialog,
 	NetClientList,
-	NetLast
+    NetNumberOfWorkspaces,
+    NetWorkspacesNames,
+    NetCurrentWorkspace,
+    NetWMDesktop,
+	NetLast,    
 };
 
 enum

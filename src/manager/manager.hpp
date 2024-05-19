@@ -66,6 +66,7 @@ public:
     Display* GetDisplay();
     void OnClientMessage(XClientMessageEvent &e);
     int SendEvent(Client *c, Atom proto);
+    int SendEventForRoot(Atom proto);
     Window GetRoot();
     Atom GetNETAtom(int atom);
     Atom GetWMAtom(int atom);

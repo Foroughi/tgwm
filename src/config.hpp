@@ -24,7 +24,7 @@
 #define TOP_BAR_HEIGHT 33
 #define GAP 7
 #define TAGGAP 5
-#define BORDER_WIDTH 3
+#define BORDER_WIDTH 2
 #ifdef TGWMDEBUG
 /* This Hotkey will be used if the app is started with Xephyr*/
 #define HOTKEY Mod1Mask
@@ -52,6 +52,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
     start("picom -b");
     start("conky");
     start("kitty tmux");            
+    start("polybar");  
 };
 
 /*=====================================================================================================*/
@@ -122,7 +123,7 @@ namespace CONFIG
     /*================================================ TAGS ===============================================*/
     /*=====================================================================================================*/
     inline std::vector<Tag *> Tags[] = {
-        {new Tag(0, "", ICON_FA_COMPUTER),
+        {new Tag(0, "home", ICON_FA_COMPUTER),
          new Tag(1, "dev", ""),
          new Tag(2, "www", ""),
          new Tag(3, "term", ""),

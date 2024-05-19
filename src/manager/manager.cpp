@@ -55,6 +55,10 @@ void Manager::Config()
 
             mon->OnSelectedTagChanged = [=](int Index)
             {
+
+                int currentWorkspace[1] = {Index};
+                XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);                
+
                 this->SortAll();
 
                 this->DrawBars();
@@ -63,9 +67,10 @@ void Manager::Config()
 
                 Window win = currenTag->GetLastActiveWindow();
 
-                if(win != 0)
+                if (win != 0)
                     this->SelectClient(this->SelectedMonitor->FindByFrame(win));
-
+                else
+                    this->SelectClient(NULL);
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
@@ -100,18 +105,19 @@ void Manager::Config()
 
         mon->OnSelectedTagChanged = [=](int Index)
         {
-            this->DrawBars();
+            int currentWorkspace[1] = {Index};
+            XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
 
+            this->DrawBars();
 
             auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();
 
             Window win = currenTag->GetLastActiveWindow();
 
-            if(win != 0)
-
+            if (win != 0)
                 this->SelectClient(this->SelectedMonitor->FindByFrame(win));
-
-
+            else
+                    this->SelectClient(NULL);
         };
 
         mon->SetWidgets(CONFIG::Widgets.at(0));
@@ -124,9 +130,6 @@ void Manager::Config()
 
 void Manager::onSelectedTagChanged(int Index)
 {
-
-    
-
 }
 
 Manager::Manager(Display *display) : CurrentDisplay(display), root(DefaultRootWindow(display))
@@ -170,6 +173,7 @@ void Manager::DrawBars()
 void Manager::DrawBar(Monitor *mon)
 {
 
+    return;
     XftColor color;
 
     auto font = XftFontOpenName(this->CurrentDisplay, DefaultScreen(this->CurrentDisplay), TOPBAR_FONT);
@@ -349,15 +353,17 @@ void Manager::Unframe(Window w)
     this->SelectedMonitor->Sort();
     this->DrawBars();
 
-    if(parent != NULL)
+    if (parent != NULL)
     {
         this->SelectClient(parent);
     }
     else
     {
-        auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll);
-        if(clients.size() > 0)
-            this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll).at(0));
+        auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex(), FloatingStatus::FSAll);
+        if (clients.size() > 0)
+            this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex(), FloatingStatus::FSAll).at(0));
+        else
+            this->SelectClient(NULL);
     }
 }
 
@@ -440,8 +446,7 @@ void Manager::ToggleClientFullscreen(Display *dpy, Monitor *mon, Client *client,
         int y = (mon->GetSize().y - TOP_BAR_HEIGHT);
 
         client->SetSize(w - (GAP * 2), y - TOP_BAR_HEIGHT - (GAP * 2) + 32);
-        client->SetLocation(GAP + mon->GetLoc().x, TOP_BAR_HEIGHT + GAP + mon->GetLoc().y);        
-
+        client->SetLocation(GAP + mon->GetLoc().x, TOP_BAR_HEIGHT + GAP + mon->GetLoc().y);
     }
     else if (!fullscreen && client->GetFullscreen())
     {
@@ -469,7 +474,7 @@ Atom Manager::GetNETAtomByClient(Window w, Atom prop)
     return atom;
 }
 
-void Manager::Frame(Window w, bool was_created_before_window_manager)
+void Manager::Frame(Window w, bool WasCreatedBefore)
 {
 
     bool isFloating = False;
@@ -477,11 +482,12 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     Atom wtype = this->GetNETAtomByClient(w, this->GetNETAtom(NetWMWindowType));
 
     char *win_name;
-    XFetchName(this->GetDisplay() ,  w, &win_name);
+    XFetchName(this->GetDisplay(), w, &win_name);
     LOG(INFO) << "Framing " << win_name;
-    
-    //ignoring conky windows
-    if (win_name != NULL &&  std::string(win_name).find("conky") != std::string::npos) {
+
+    // ignoring conky , polybar windows
+    if (win_name != NULL && (std::string(win_name).find("conky") != std::string::npos || std::string(win_name).find("polybar") != std::string::npos))
+    {
         return;
     }
 
@@ -495,9 +501,7 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
     XWindowAttributes x_window_attrs;
     CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
 
-    
-
-    if (was_created_before_window_manager)
+    if (WasCreatedBefore)
     {
         if (x_window_attrs.override_redirect ||
             x_window_attrs.map_state != IsViewable)
@@ -519,6 +523,9 @@ void Manager::Frame(Window w, bool was_created_before_window_manager)
         this->CurrentDisplay,
         frame,
         SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | LeaveWindowMask);
+
+    int currentWorkspace[1] = {this->GetSelectedMonitor()->GetSelectedTag()->GetIndex()};
+    XChangeProperty(this->CurrentDisplay, w, this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
 
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
@@ -710,7 +717,6 @@ void Manager::reparentAlreadyOpenWindows()
 void Manager::OnMouseEnter(const XCrossingEvent &e)
 {
     return;
-    
 }
 
 void Manager::OnMouseLeave(const XCrossingEvent &e)
@@ -752,7 +758,7 @@ void Manager::OnButtonPress(XButtonPressedEvent &e)
                 }
             }
 
-            if(this->GetSelectedClient() != c)            
+            if (this->GetSelectedClient() != c)
                 this->SelectClient(c);
 
             break;
@@ -925,11 +931,15 @@ void Manager::SelectClient(Client *client)
 
         auto currentTag = this->GetSelectedMonitor()->GetSelectedTag();
         currentTag->SetLastActiveWindow(client->GetFrame());
+        auto win = client->GetWindow();
+        XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&win, 1);
     }
     else
     {
         this->SelectedClient = NULL;
+        
         XSetInputFocus(this->CurrentDisplay, this->root, RevertToPointerRoot, CurrentTime);
+        XDeleteProperty(this->CurrentDisplay, this->root, NET_Atom[NetActiveWindow]);
     }
 }
 
@@ -948,9 +958,12 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
 
     this->SelectedClient->SetTagIndex(index);
 
-    auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll);
-        if(clients.size() > 0)
-            this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex() , FloatingStatus::FSAll).at(0));
+    int currentWorkspace[1] = {index};
+    XChangeProperty(this->CurrentDisplay, this->SelectedClient->GetWindow() , this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
+
+    auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex(), FloatingStatus::FSAll);
+    if (clients.size() > 0)
+        this->SelectClient(this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex(), FloatingStatus::FSAll).at(0));
 }
 
 std::vector<Monitor *> Manager::GetMonitors()
@@ -1018,6 +1031,35 @@ int Manager::SendEvent(Client *c, Atom proto)
     return exists;
 }
 
+int Manager::SendEventForRoot(Atom proto)
+{
+    int n;
+    Atom *protocols;
+    int exists = 0;
+
+    XEvent ev;
+
+    if (XGetWMProtocols(this->CurrentDisplay, this->root, &protocols, &n))
+    {
+        while (!exists && n--)
+            exists = protocols[n] == proto;
+        XFree(protocols);
+    }
+
+    if (exists)
+    {
+
+        ev.type = ClientMessage;
+        ev.xclient.window = this->root;
+        ev.xclient.message_type = this->WM_Atom[WMProtocols];
+        ev.xclient.format = 32;
+        ev.xclient.data.l[0] = proto;
+        ev.xclient.data.l[1] = CurrentTime;
+        XSendEvent(this->CurrentDisplay, this->root, False, NoEventMask, &ev);
+    }
+    return exists;
+}
+
 void Manager::EnableDubugMod()
 {
     this->DebugMode = True;
@@ -1026,7 +1068,7 @@ void Manager::EnableDubugMod()
 
 int Manager::Run()
 {
-    
+
     this->NET_Atom[NetActiveWindow] = XInternAtom(this->CurrentDisplay, "_NET_ACTIVE_WINDOW", False);
     this->NET_Atom[NetSupported] = XInternAtom(this->CurrentDisplay, "_NET_SUPPORTED", False);
     this->NET_Atom[NetWMName] = XInternAtom(this->CurrentDisplay, "_NET_WM_NAME", False);
@@ -1041,14 +1083,48 @@ int Manager::Run()
     this->WM_Atom[WMDelete] = XInternAtom(this->CurrentDisplay, "WM_DELETE_WINDOW", False);
     this->WM_Atom[WMState] = XInternAtom(this->CurrentDisplay, "WM_STATE", False);
     this->WM_Atom[WMTakeFocus] = XInternAtom(this->CurrentDisplay, "WM_TAKE_FOCUS", False);
+    this->WM_Atom[NetWMDesktop] = XInternAtom(this->CurrentDisplay, "_NET_WM_DESKTOP", False);
+    
 
-    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *) &this->root, 1);
-        
-    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMName], XInternAtom(this->CurrentDisplay, "UTF8_STRING", False), 8, PropModeReplace, (unsigned char *) "TGWM", 4);
-		
+    // Polybar Integration
+    this->NET_Atom[NetNumberOfWorkspaces] = XInternAtom(this->CurrentDisplay, "_NET_NUMBER_OF_DESKTOPS", False);
+    this->NET_Atom[NetWorkspacesNames] = XInternAtom(this->CurrentDisplay, "_NET_DESKTOP_NAMES", False);
+    this->NET_Atom[NetCurrentWorkspace] = XInternAtom(this->CurrentDisplay, "_NET_CURRENT_DESKTOP", False);
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMCheck], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&this->root, 1);
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWMName], XInternAtom(this->CurrentDisplay, "UTF8_STRING", False), 8, PropModeReplace, (unsigned char *)"TGWM", 4);
+
     XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)NET_Atom, NetLast);
 
-    XDeleteProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetClientList]);
+    int numberOfDesktops[1] = {CONFIG::Tags->size()};
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetNumberOfWorkspaces], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)numberOfDesktops, 1);
+
+    int lengthOfNames = 0;
+  
+
+    for (auto t : CONFIG::Tags[0])
+    {
+        lengthOfNames += t->GetName().length() + 1;
+       
+    }
+
+    char names[lengthOfNames];
+    int currentNameChar = 0;
+    for (auto t : CONFIG::Tags[0])
+    {      
+        for (auto i = 0; i < t->GetName().length() + 1 ; i++)
+        {
+            names[currentNameChar++] = t->GetName()[i];
+        }
+        
+       
+    }
+
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWorkspacesNames], XInternAtom(this->CurrentDisplay, "UTF8_STRING", False), 8, PropModeAppend, (unsigned char *)names, lengthOfNames);
+    int currentWorkspace[1] = {0};
+    XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);
 
     XSetWindowAttributes wa;
 
@@ -1062,8 +1138,8 @@ int Manager::Run()
 
     grabkeys(this->CurrentDisplay, this->root);
 
-    XGrabButton(this->CurrentDisplay, Button1, AnyModifier, this->root, False, ButtonPressMask , GrabModeSync, GrabModeAsync, None, None);
-    
+    XGrabButton(this->CurrentDisplay, Button1, AnyModifier, this->root, False, ButtonPressMask, GrabModeSync, GrabModeAsync, None, None);
+
     XSetErrorHandler(OnXError);
 
     this->Config();
@@ -1075,7 +1151,6 @@ int Manager::Run()
     std::chrono::time_point start = std::chrono::steady_clock::now();
 
     XEvent e;
-    
 
     while (IsRunning && !XNextEvent(this->CurrentDisplay, &e))
     {
@@ -1089,8 +1164,6 @@ int Manager::Run()
         // if (XPending(this->CurrentDisplay) == 0)
         //     continue;
 
-        
-        
         // if (e.type != MotionNotify)
         // LOG(INFO) << "Received event: " << ToString(e);
 
