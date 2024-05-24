@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <algorithm>
 #include "tuple"
 #include "./tag/tag.hpp"
 #include "./widget/widget.hpp"
@@ -50,6 +51,8 @@
 
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {       
+    start("dbus-update-activation-environment --all");
+    start("gnome-keyring-daemon --start --components=secrets");
     start("nitrogen --restore");
     start("picom -b");
     start("conky");
