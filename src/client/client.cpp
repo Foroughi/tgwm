@@ -1,5 +1,4 @@
 #include "../client/client.hpp"
-
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <vector>
@@ -8,7 +7,8 @@
 
 Client::Client(Display *display, Loc monitorLoc, Window frame, Window window, int tagIndex) : MonitorLoc(monitorLoc), Frame(frame), Win(window), _Display(display), TagIndex(tagIndex) {}
 Client::~Client()
-{
+{    
+
 }
 
 Window Client::GetWindow()
@@ -79,8 +79,7 @@ Loc Client::GetWinSize()
 void Client::SetSize(int x, int y)
 {
     XResizeWindow(this->_Display, this->Frame, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
-    XResizeWindow(this->_Display, this->Win, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));
-    LOG(INFO) << "Setting size of " << this->Win << " to " << x - (BORDER_WIDTH * 2) << ", " << y - (BORDER_WIDTH * 2);
+    XResizeWindow(this->_Display, this->Win, x - (BORDER_WIDTH * 2), y - (BORDER_WIDTH * 2));    
 }
 
 Loc Client::GetLocation()

@@ -44,7 +44,7 @@ public:
     Window GetTopbar();
     void HideClients(int tagIndex);
     void ShowClients(int tagIndex);
-    void AddClient(Display *display,Client* parent , Window frame, Window win,bool isFloating , int tagIndex);    
+    Client* AddClient(Display *display,Client* parent , Window frame, Window win,bool isFloating , int tagIndex);    
     void RemoveClient(Client * client);
     void Sort();
     Client* FindByWindow(Window win);

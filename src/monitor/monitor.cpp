@@ -1,6 +1,5 @@
 #include "monitor.hpp"
 #include <X11/Xutil.h>
-#include <glog/logging.h>
 #include "../config.hpp"
 
 Monitor::Monitor(Display *display, int screen, Window topbar, std::vector<Tag *> tags) : Topbar(topbar), _Display(display), Screen(screen), Tags(tags)
@@ -122,9 +121,7 @@ void Monitor::Sort()
     std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex(), FSNormal);
 
     int cNum = clients.size();
-
-    LOG(INFO) << "Sorting : " << cNum;
-
+    
     if (cNum == 0)
         return;
 
@@ -222,7 +219,7 @@ void Monitor::SortDialogs(Client *parent)
     }
 }
 
-void Monitor::AddClient(Display *display, Client *parent, Window frame, Window win, bool isFloating, int tagIndex = 0)
+Client* Monitor::AddClient(Display *display, Client *parent, Window frame, Window win, bool isFloating, int tagIndex = 0)
 {
     auto c = new Client(display, this->GetLoc(), frame, win, tagIndex);
 
@@ -233,6 +230,8 @@ void Monitor::AddClient(Display *display, Client *parent, Window frame, Window w
         c->SetPriority(1);
 
     this->Clients.push_back(c);
+
+    return c;
 }
 
 void Monitor::AddClient(Client *c)

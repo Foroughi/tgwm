@@ -15,7 +15,6 @@
 #include "./monitor/monitor.hpp"
 #include "./manager/manager.hpp"
 #include "./util/util.hpp"
-#include <glog/logging.h>
 #include <cctype>
 #include <stdlib.h>
 
@@ -54,6 +53,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
     start("dbus-update-activation-environment --all");
     start("gnome-keyring-daemon --start --components=secrets");
     start("nitrogen --restore");
+    
     start("picom -b");
     start("conky");
     start("kitty tmux");       
@@ -422,26 +422,26 @@ namespace CONFIG
         // Mod + F1
         {XK_F1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             LOG(INFO) << "======================================================";
+            //  LOG(INFO) << "======================================================";
 
-             for (auto mon : manager->GetMonitors())
-             {
-                 LOG(INFO) << "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
+            //  for (auto mon : manager->GetMonitors())
+            //  {
+            //      LOG(INFO) << "Monitor (" + std::to_string(mon->GetScreen()) + "): (size :" + std::to_string(mon->GetSize().x) + ":" + std::to_string(mon->GetSize().y) + ") (loc :" + std::to_string(mon->GetLoc().x) + ":" + std::to_string(mon->GetLoc().y) + ")\n";
 
-                 LOG(INFO) << "Tags :\n";
-                 for (auto it : mon->GetTags())
-                 {
-                     LOG(INFO) << it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex(), FSAll).size()) + ") \n";
-                 }
+            //      LOG(INFO) << "Tags :\n";
+            //      for (auto it : mon->GetTags())
+            //      {
+            //          LOG(INFO) << it->GetName() + "(" + std::to_string(it->GetIndex()) + ") (clients : " + std::to_string(mon->GetClients(it->GetIndex(), FSAll).size()) + ") \n";
+            //      }
 
-                 LOG(INFO) << "Clients :\n";
-                 for (auto it : mon->GetClients(-1, FSAll))
-                 {
-                     LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (Frame size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (Frame loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ") (Win size : "+ std::to_string(it->GetWinSize().x) + ":" + std::to_string(it->GetWinSize().y) +") (Win loc : "+ std::to_string(it->GetWinLocation().x) + ":" + std::to_string(it->GetWinLocation().y) +")\n";
-                 }
-             }
+            //      LOG(INFO) << "Clients :\n";
+            //      for (auto it : mon->GetClients(-1, FSAll))
+            //      {
+            //          LOG(INFO) << "tag : (" + std::to_string(it->GetTagIndex()) + "): (Frame size :" + std::to_string(it->GetSize().x) + ":" + std::to_string(it->GetSize().y) + ") (Frame loc :" + std::to_string(it->GetLocation().x) + ":" + std::to_string(it->GetLocation().y) + ") (Win size : "+ std::to_string(it->GetWinSize().x) + ":" + std::to_string(it->GetWinSize().y) +") (Win loc : "+ std::to_string(it->GetWinLocation().x) + ":" + std::to_string(it->GetWinLocation().y) +")\n";
+            //      }
+            //  }
 
-             LOG(INFO) << "======================================================";
+            //  LOG(INFO) << "======================================================";
              // Log(str);
          }},
 
@@ -558,7 +558,8 @@ namespace CONFIG
         // Mod + ~
         {XK_grave, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+            start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+            //start("dmenu_run");
          }},
 
         // Mod + Pause

@@ -16,7 +16,7 @@ FREETYPELIBS = -lfontconfig -lXft
 FREETYPEINC = /usr/include/freetype2
 
 INCS = -I${X11INC} -I${FREETYPEINC} 
-LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}  -lglog -pthread 
+LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}  -pthread 
 
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS} 
 CXXFLAGS   = -std=c++17 -pedantic -Wall -Wno-deprecated-declarations -Os ${INCS} ${CPPFLAGS} ${DEBUGMODEFLAG}

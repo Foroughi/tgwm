@@ -5,7 +5,6 @@
 #include "../config.hpp"
 #include <X11/Xatom.h>
 #include <string>
-#include <glog/logging.h>
 #include <X11/Xutil.h>
 #include <chrono>
 #include <iostream>
@@ -172,7 +171,7 @@ void Manager::DrawBars()
 
 void Manager::DrawBar(Monitor *mon)
 {
-    if(TOPBAR != CONFIG::Topbars::Topbar_Integrated)
+    //if(TOPBAR != CONFIG::Topbars::Topbar_Integrated)
         return;
 
     XftColor color;
@@ -273,6 +272,7 @@ void Manager::UpdateWidgets()
 
 void Manager::DrawWidgets()
 {
+    return;
     int i = 0;
     for (auto mon : this->GetMonitors())
     {
@@ -484,8 +484,7 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
 
     char *win_name;
     XFetchName(this->GetDisplay(), w, &win_name);
-    LOG(INFO) << "Framing " << win_name;
-
+    
     // ignoring conky , polybar windows
     if (win_name != NULL && (std::string(win_name).find("conky") != std::string::npos || std::string(win_name).find("polybar") != std::string::npos))
     {
@@ -500,14 +499,14 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
     }
 
     XWindowAttributes x_window_attrs;
-    CHECK(XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs));
+    XGetWindowAttributes(this->CurrentDisplay, w, &x_window_attrs);
 
     if (WasCreatedBefore)
     {
         if (x_window_attrs.override_redirect ||
             x_window_attrs.map_state != IsViewable)
         {
-            LOG(INFO) << "Framed window canceled due to overrided attribute";
+          
             return;
         }
     }
@@ -532,11 +531,9 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
 
-    this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
+    auto c = this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
-    LOG(INFO) << "Framed window " << w << " [" << frame << "] " << (isFloating ? "Floating" : "");
-
-    this->SelectClient(this->GetSelectedMonitor()->FindByFrame(frame));
+    this->SelectClient(c);
 
     this->Update_NET_CLIENT_LIST();
 
@@ -567,14 +564,12 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     // Atom wtype = this->GetNETAtomByClient(e.window, this->GetNETAtom(NetWMWindowType));
 
     // if (client)
-    // {
-    //     LOG(INFO) << "Configuration asked for client :" << e.window;
+    // {    
     //     return;
     // }
     // else if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
     // {
-
-    //     LOG(INFO) << "Configuration asked for dialog :" << e.window;
+    
     //     int x = this->GetSelectedClient()->GetLocation().x;
     //     int y = this->GetSelectedClient()->GetLocation().y;
 
@@ -593,7 +588,7 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     // }
     // else
     {
-        LOG(INFO) << "Configuration asked for  :" << e.window;
+      
         XWindowChanges changes;
         changes.x = e.x;
         changes.y = e.y;
@@ -609,8 +604,7 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
         {
 
             // const Window frame = c->GetFrame();
-            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
-            //  LOG(INFO) << "Reframing " << e.window;
+            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);            
 
             changes.x = 0;
             changes.y = 0;
@@ -626,12 +620,11 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 
             XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
 
-            LOG(INFO) << "Resize " << e.window << " to " << changes.width << " " << changes.height;
-            LOG(INFO) << "Move " << e.window << " to " << changes.x << " " << changes.y;
+          
         }
 
         XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-        LOG(INFO) << "Resize " << e.window << " to " << e.width << e.height;
+        
     }
 }
 
@@ -646,13 +639,11 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)
 {
-    // LOG(INFO) << "Creating " << e.window;
+    
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
 {
-
-    LOG(INFO) << "Destroying window " << e.window;
 
     Client *c = this->SelectedMonitor->FindByWindow(e.window);
 
@@ -664,9 +655,7 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
     const Window win = c->GetWindow();
 
     this->SelectedMonitor->RemoveClient(c);
-    delete c;
-
-    LOG(INFO) << "Destroyed window " << win << " [" << frame << "]";
+    delete c;    
 
     this->SelectedMonitor->Sort();
 
@@ -699,14 +688,14 @@ void Manager::reparentAlreadyOpenWindows()
     Window returned_root, returned_parent;
     Window *top_level_windows;
     unsigned int num_top_level_windows;
-    CHECK(XQueryTree(
+    XQueryTree(
         this->CurrentDisplay,
         this->root,
         &returned_root,
         &returned_parent,
         &top_level_windows,
-        &num_top_level_windows));
-    CHECK_EQ(returned_root, this->root);
+        &num_top_level_windows);
+    
     for (unsigned int i = 0; i < num_top_level_windows; ++i)
     {
         Frame(top_level_windows[i], true);
@@ -726,10 +715,10 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 
 void Manager::OnButtonPress(XButtonPressedEvent &e)
 {
-
+    
     XAllowEvents(this->CurrentDisplay, ReplayPointer, CurrentTime);
     XSync(this->CurrentDisplay, 0);
-
+    
     if (e.subwindow == this->root)
     {
         this->SelectClient(NULL);
@@ -834,9 +823,8 @@ int Manager::OnXError(Display *display, XErrorEvent *e)
 
     const int MAX_ERROR_TEXT_LENGTH = 1024;
     char error_text[MAX_ERROR_TEXT_LENGTH];
-    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
-    LOG(INFO) << error_text;
-    // Log(error_text);
+    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));    
+    
     return 0;
 }
 
@@ -1130,7 +1118,7 @@ int Manager::Run()
     XSetWindowAttributes wa;
 
     wa.cursor = XCreateFontCursor(this->CurrentDisplay, XC_left_ptr);
-    wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
+    wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask  | PointerMotionMask | ButtonPressMask | EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask;
     XChangeWindowAttributes(this->CurrentDisplay, this->root, CWEventMask | CWCursor, &wa);
 
     XSelectInput(this->CurrentDisplay, this->root, wa.event_mask);
@@ -1145,9 +1133,7 @@ int Manager::Run()
 
     this->Config();
     this->DrawBars();
-    this->UpdateWidgets();
-
-    LOG(INFO) << "Starts....";
+    this->UpdateWidgets();    
 
     std::chrono::time_point start = std::chrono::steady_clock::now();
 
@@ -1165,8 +1151,7 @@ int Manager::Run()
         // if (XPending(this->CurrentDisplay) == 0)
         //     continue;
 
-        // if (e.type != MotionNotify)
-        // LOG(INFO) << "Received event: " << ToString(e);
+        // if (e.type != MotionNotify)        
 
         switch (e.type)
         {
