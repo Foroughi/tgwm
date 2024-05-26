@@ -531,9 +531,9 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
 
-    auto c = this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
+    this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
 
-    this->SelectClient(c);
+    
 
     this->Update_NET_CLIENT_LIST();
 
@@ -635,6 +635,8 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
     Frame(e.window, false);
     XMapWindow(this->CurrentDisplay, e.window);
+
+    this->SelectClient(this->SelectedMonitor->FindByWindow(e.window));
 }
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)

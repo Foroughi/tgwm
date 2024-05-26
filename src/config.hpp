@@ -558,7 +558,7 @@ namespace CONFIG
         // Mod + ~
         {XK_grave, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-            start("rofi -no-lazy-grab -show drun -modi drun -config ~/.config/rofi/config.rasi");
+            start("rofi -no-lazy-grab -show drun -config ~/.config/rofi/config.rasi");
             //start("dmenu_run");
          }},
 
@@ -577,19 +577,19 @@ namespace CONFIG
         // Mod + Ctrl + Print
         {XK_Print, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
-             start("scrot -m -e 'mv $f /home/ali/Pictures/'");
+             start("scrot -m -e 'mv $f /home/ali/pictures/'");
          }},
 
         // Mod + Print
-        {XK_Print, None, [](Manager *manager, const XKeyEvent &e)
+        {XK_Print, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("scrot -mscrot -u -e 'mv $f /home/ali/Pictures/'");
+             start("scrot -s  -e 'xclip -selection clipboard -t image/png -i $f && rm $f'");
          }},
 
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty tmux");
+             start("kitty tmux attach");
          }},
 
         // Mod + Ctrl  + Enter
