@@ -69,7 +69,12 @@ void Manager::Config()
                 if (win != 0)
                     this->SelectClient(this->SelectedMonitor->FindByFrame(win));
                 else
-                    this->SelectClient(NULL);
+                {
+                    if(this->SelectedMonitor->GetClients(Index , FSAll).size() > 0)
+                        this->SelectClient(this->SelectedMonitor->GetClients(Index , FSAll).at(0));
+                    else
+                        this->SelectClient(NULL);
+                }
             };
 
             mon->SetLayout(CONFIG::DefaultLayouts.at(i));
@@ -116,7 +121,12 @@ void Manager::Config()
             if (win != 0)
                 this->SelectClient(this->SelectedMonitor->FindByFrame(win));
             else
+            {
+                if(this->SelectedMonitor->GetClients(Index , FSAll).size() > 0)
+                    this->SelectClient(this->SelectedMonitor->GetClients(Index , FSAll).at(0));
+                else
                     this->SelectClient(NULL);
+            }
         };
 
         mon->SetWidgets(CONFIG::Widgets.at(0));
