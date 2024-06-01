@@ -394,13 +394,13 @@ void Manager::OnClientMessage(XClientMessageEvent &e)
         if (!c)
             continue;
 
+        //A Client as for attention either by opening a modal or user using ctrl+tab to active a window 
         else if (e.message_type == NET_Atom[NetActiveWindow])
         {
 
-            if (this->SelectedClient != c)
-            {
+            if (mon->GetSelectedTag()->GetIndex() != c->GetTagIndex())            
                 mon->SelectTagByIndex(c->GetTagIndex());
-            }
+            
         }
         else if (e.message_type == NET_Atom[NetWMState])
         {
@@ -1234,6 +1234,20 @@ int Manager::Run()
         default:
             break;
         }
+    }
+
+
+    //closing all windows
+    auto wmDelete = this->GetWMAtom(WMDelete);
+
+    for(auto mon : this->GetMonitors())
+    {
+
+        for(auto client : mon->GetClients(-1 , FSAll))
+        {
+            this->SendEvent(client, wmDelete);
+        }
+
     }
 
     XSync(this->CurrentDisplay, False);

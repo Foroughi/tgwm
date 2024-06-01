@@ -158,10 +158,10 @@ namespace CONFIG
     inline std::vector<Tag *> Tags[] = {
         {
         //new Tag(0, "home", ICON_FA_COMPUTER),
-         new Tag(1, "term", ""),
-         new Tag(2, "dev", ""),
-         new Tag(3, "www", ""),         
-         new Tag(4, "misc", "")},
+         new Tag(0, "term", ""),
+         new Tag(1, "dev", ""),
+         new Tag(2, "www", ""),         
+         new Tag(3, "misc", "")},
 
         {new Tag(0, "www", ""),
          new Tag(1, "misc", "")}};
