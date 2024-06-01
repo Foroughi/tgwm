@@ -24,7 +24,7 @@
 #define TOP_BAR_HEIGHT 33
 #define GAP 7
 #define TAGGAP 5
-#define BORDER_WIDTH 2
+#define BORDER_WIDTH 1
 #ifdef TGWMDEBUG
 /* This Hotkey will be used if the app is started with Xephyr*/
 #define HOTKEY Mod1Mask
@@ -596,7 +596,7 @@ namespace CONFIG
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty tmux");
+             start("kitty bash -c 'tmux attach-session ||  tmux'");
          }},
 
         // Mod + Ctrl  + Enter
