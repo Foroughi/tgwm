@@ -951,6 +951,9 @@ void Manager::SelectClient(Client *client)
 void Manager::MoveSelectedClient(Monitor *mon, int index)
 {
 
+    if(mon->GetTags().size() <= index)
+        return;
+
     if (!this->SelectedClient)
         return;
 

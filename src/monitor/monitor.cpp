@@ -59,6 +59,10 @@ Tag *Monitor::GetSelectedTag()
 
 void Monitor::SelectTagByIndex(int index)
 {
+
+    if(this->Tags.size() <= index)
+        return;
+
     this->HideClients(this->SelectedTag->GetIndex());
 
     this->SelectedTag = this->Tags[index];
