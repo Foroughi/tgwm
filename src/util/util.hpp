@@ -24,7 +24,7 @@ struct Rect
 	int Width;
 };
 
-void start(char *what);
+void start(std::string);
 std::string exec(const char *cmd);
 std::string ToString(const XEvent &e);
 static unsigned int numlockmask = 0;

@@ -14,13 +14,13 @@
 #include<unistd.h>
 
 
-void start(char *what)
+void start(std::string what)
 {
     if (!fork())
     {
         //char *const args[] = {"/bin/sh", "-c", what, NULL};
         //char *const args[] = {"-c", what};
-        execl("/bin/sh", "/bin/sh" , "-c" , what , NULL);
+        execl("/bin/sh", "/bin/sh" , "-c" , what.c_str() , NULL);
         exit(1);
     }    
 }

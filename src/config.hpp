@@ -6,7 +6,7 @@
 #include <X11/Xutil.h>
 #include <vector>
 #include <string>
-#include <cstring>
+#include <string>
 #include <algorithm>
 #include "tuple"
 #include "./tag/tag.hpp"
@@ -24,7 +24,7 @@
 #define TOP_BAR_HEIGHT 33
 #define GAP 7
 #define TAGGAP 5
-#define BORDER_WIDTH 1
+#define BORDER_WIDTH 2
 #ifdef TGWMDEBUG
 /* This Hotkey will be used if the app is started with Xephyr*/
 #define HOTKEY Mod1Mask
@@ -42,6 +42,8 @@
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
 
+#define TERMINAL "kitty"
+
 #define TOPBAR 0
 
 /*=====================================================================================================*/
@@ -56,8 +58,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
     
     start("picom -b");
     start("conky");
-    //start("kitty tmux");     
-              
+                    
     if(TOPBAR == 0)
         start("polybar");  
 };
@@ -247,7 +248,7 @@ namespace CONFIG
             },
             [](int button, Manager *manager , Widget * widget)
             {
-                start("kitty htop");
+                start(std::string(TERMINAL).append(" htop"));
             }),
 
         // Memory Widget
@@ -596,13 +597,13 @@ namespace CONFIG
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty bash -c 'tmux attach-session ||  tmux'");
+             start(std::string(TERMINAL).append(" bash -c 'tmux attach-session ||  tmux'"));
          }},
 
         // Mod + Ctrl  + Enter
         {XK_Return, HOTKEY | ControlMask , [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty");
+             start(TERMINAL);
          }},
 
         // Mod + F5
