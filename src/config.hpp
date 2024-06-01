@@ -56,8 +56,8 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
     
     start("picom -b");
     start("conky");
-    //start("kitty tmux");       
-
+    //start("kitty tmux");     
+              
     if(TOPBAR == 0)
         start("polybar");  
 };
@@ -141,12 +141,13 @@ namespace CONFIG
     /*================================================ TAGS ===============================================*/
     /*=====================================================================================================*/
     inline std::vector<Tag *> Tags[] = {
-        {new Tag(0, "home", ICON_FA_COMPUTER),
+        {
+        //new Tag(0, "home", ICON_FA_COMPUTER),
          new Tag(1, "term", ""),
          new Tag(2, "dev", ""),
          new Tag(3, "www", ""),         
          new Tag(4, "misc", "")},
-         
+
         {new Tag(0, "www", ""),
          new Tag(1, "misc", "")}};
 
@@ -531,7 +532,9 @@ namespace CONFIG
         // Mod + Ctrl + 6
         {XK_6, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->MoveSelectedClient(manager->GetMonitor(1), 0);
+            if(manager->GetMonitors().size() > 1)
+                manager->MoveSelectedClient(manager->GetMonitor(1), 0);
+
              manager->SortAll();
              manager->DrawBars();
          }},
@@ -539,13 +542,15 @@ namespace CONFIG
         // Mod + 6
         {XK_6, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->GetMonitor(1)->SelectTagByIndex(0);
+            if(manager->GetMonitors().size() > 1)
+                manager->GetMonitor(1)->SelectTagByIndex(0);
          }},
 
         // Mod + Ctrl + 7
         {XK_7, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->MoveSelectedClient(manager->GetMonitor(1), 1);
+            if(manager->GetMonitors().size() > 1)
+                manager->MoveSelectedClient(manager->GetMonitor(1), 1);
              manager->SortAll();
              manager->DrawBars();
          }},
@@ -553,7 +558,8 @@ namespace CONFIG
         // Mod + 7
         {XK_7, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->GetMonitor(1)->SelectTagByIndex(1);
+            if(manager->GetMonitors().size() > 1)
+                manager->GetMonitor(1)->SelectTagByIndex(1);
          }},
 
         // Mod + ~
@@ -590,7 +596,7 @@ namespace CONFIG
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start("kitty tmux attach");
+             start("kitty tmux");
          }},
 
         // Mod + Ctrl  + Enter

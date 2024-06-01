@@ -534,14 +534,17 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
         frame,
         SubstructureRedirectMask | SubstructureNotifyMask | KeyPressMask | EnterWindowMask | LeaveWindowMask);
 
-    int currentWorkspace[1] = {this->GetSelectedMonitor()->GetSelectedTag()->GetIndex()};
+    auto TagIndex= this->SelectedMonitor->GetSelectedTag()->GetIndex();
+
+    int currentWorkspace[1] = {TagIndex};
     XChangeProperty(this->CurrentDisplay, w, this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
 
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
 
-    this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating, this->SelectedMonitor->GetSelectedTag()->GetIndex());
+    
+    this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating,  TagIndex);
 
     
 
@@ -940,6 +943,7 @@ void Manager::SelectClient(Client *client)
         this->SelectedClient = NULL;
         
         XSetInputFocus(this->CurrentDisplay, this->root, RevertToPointerRoot, CurrentTime);
+        //XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, NULL , 1);
         XDeleteProperty(this->CurrentDisplay, this->root, NET_Atom[NetActiveWindow]);
     }
 }

@@ -21,7 +21,7 @@ void start(char *what)
         //char *const args[] = {"/bin/sh", "-c", what, NULL};
         //char *const args[] = {"-c", what};
         execl("/bin/sh", "/bin/sh" , "-c" , what , NULL);
-        //exit(1);
+        exit(1);
     }    
 }
 
