@@ -43,8 +43,14 @@
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
 
 #define TERMINAL "kitty"
+#define RUN_DBUS true
+#define RUN_GNOMEKEYRING true
+#define RUN_NITORGEN true
+#define RUN_COMPOSITOR true
+#define COMPOSITOR "picom -b"
+#define RUN_CONKEY true
 
-#define TOPBAR 0
+#define TOPBAR 0 //0- Polybar 1 - Built-in bar
 
 /*=====================================================================================================*/
 /*=============================================== Bootstrap =============================================*/
@@ -52,12 +58,20 @@
 
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {       
-    start("dbus-update-activation-environment --all");
-    start("gnome-keyring-daemon --start --components=secrets");
-    start("nitrogen --restore");
+    if(RUN_DBUS)
+        start("dbus-update-activation-environment --all");
+
+    if(RUN_GNOMEKEYRING)
+        start("gnome-keyring-daemon --start --components=secrets");
+
+    if(RUN_NITORGEN)
+        start("nitrogen --restore");
     
-    start("picom -b");
-    start("conky");
+    if(RUN_COMPOSITOR)
+        start(COMPOSITOR);
+    
+    if(RUN_CONKEY)
+        start("conky");
                     
     if(TOPBAR == 0)
         start("polybar");  
