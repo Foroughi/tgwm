@@ -181,7 +181,7 @@ void Manager::DrawBars()
 
 void Manager::DrawBar(Monitor *mon)
 {
-    //if(TOPBAR != CONFIG::Topbars::Topbar_Integrated)
+    if(TOPBAR != 1)
         return;
 
     XftColor color;
