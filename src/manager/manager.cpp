@@ -863,7 +863,7 @@ void Manager::OnMotionNotify(XMotionEvent &e)
 {
     if (this->Monitors.size() > 1)
     {
-        if (e.x > 1920)
+        if (e.x < 1920)
             this->SelectedMonitor = this->Monitors[1];
         else
             this->SelectedMonitor = this->Monitors[0];

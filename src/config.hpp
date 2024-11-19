@@ -73,8 +73,16 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
     if(RUN_CONKEY)
         start("conky");
                     
-    if(TOPBAR == 0)
-        start("polybar");  
+    if(TOPBAR == 0){
+	if(Manager->GetMonitors().size() == 1)
+		start("polybar");  
+	else
+	{
+		start("polybar tgwm1");  
+		start("polybar tgwm2");  
+	
+	}
+    }
 };
 
 /*=====================================================================================================*/
@@ -533,7 +541,8 @@ namespace CONFIG
         // Mod + Ctrl + 5
         {XK_5, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->MoveSelectedClient(manager->GetMonitor(0), 4);
+		if(manager->GetMonitors().size() > 1)
+	             manager->MoveSelectedClient(manager->GetMonitor(1), 0);
              manager->SortAll();
              manager->DrawBars();
          }},
@@ -541,14 +550,15 @@ namespace CONFIG
         // Mod + 5
         {XK_5, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             manager->GetMonitor(0)->SelectTagByIndex(4);
+            if(manager->GetMonitors().size() > 1)
+             manager->GetMonitor(1)->SelectTagByIndex(0);
          }},
 
         // Mod + Ctrl + 6
         {XK_6, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
             if(manager->GetMonitors().size() > 1)
-                manager->MoveSelectedClient(manager->GetMonitor(1), 0);
+                manager->MoveSelectedClient(manager->GetMonitor(1), 1);
 
              manager->SortAll();
              manager->DrawBars();
@@ -558,14 +568,14 @@ namespace CONFIG
         {XK_6, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
             if(manager->GetMonitors().size() > 1)
-                manager->GetMonitor(1)->SelectTagByIndex(0);
+                manager->GetMonitor(1)->SelectTagByIndex(1);
          }},
 
         // Mod + Ctrl + 7
         {XK_7, HOTKEY | ControlMask, [](Manager *manager, const XKeyEvent &e)
          {
             if(manager->GetMonitors().size() > 1)
-                manager->MoveSelectedClient(manager->GetMonitor(1), 1);
+                manager->MoveSelectedClient(manager->GetMonitor(1), 2);
              manager->SortAll();
              manager->DrawBars();
          }},
@@ -574,7 +584,7 @@ namespace CONFIG
         {XK_7, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
             if(manager->GetMonitors().size() > 1)
-                manager->GetMonitor(1)->SelectTagByIndex(1);
+                manager->GetMonitor(1)->SelectTagByIndex(2);
          }},
 
         // Mod + ~
