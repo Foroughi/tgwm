@@ -58,6 +58,7 @@
 
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 {       
+
     if(RUN_DBUS)
         start("dbus-update-activation-environment --all");
 

@@ -4,3 +4,4 @@
 /src/*.o
 .fuse_hidden**
 .depend
+.nvim/plugins/**

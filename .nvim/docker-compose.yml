@@ -1,0 +1,14 @@
+services:
+  __dev__:
+    container_name: tgwm
+    hostname: TGWM
+    image: debian
+    command : sh -c "sleep infinity"
+    environment:
+      - LANG=en_us.utf-8
+      - LC_ALL=C.UTF-8
+
+    volumes:
+     - ../.nvim:/root/.config/nvim
+     - ../:/code
+
