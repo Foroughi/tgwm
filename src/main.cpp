@@ -6,14 +6,14 @@
 
 int main(int argc, char **argv)
 {
-           
+
     Manager* wm = new Manager(XOpenDisplay(NULL));
 
     #ifdef TGWMDEBUG
     wm->EnableDubugMod();
     #endif
-    
-    auto res = wm->Run();         
+
+    auto res = wm->Run();
 
     return res;
 }
