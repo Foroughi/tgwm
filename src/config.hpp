@@ -41,7 +41,7 @@
 #define TOPBAR_SELECTED_FG "#61afef"
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
-
+#define ANIMATION 0
 #define TERMINAL "kitty"
 #define RUN_DBUS true
 #define RUN_GNOMEKEYRING true
@@ -57,7 +57,7 @@
 /*=====================================================================================================*/
 
 inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
-{       
+{
 
     if(RUN_DBUS)
         start("dbus-update-activation-environment --all");
@@ -67,21 +67,21 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 
     if(RUN_NITORGEN)
         start("nitrogen --restore");
-    
+
     if(RUN_COMPOSITOR)
         start(COMPOSITOR);
-    
+
     if(RUN_CONKEY)
         start("conky");
-                    
+
     if(TOPBAR == 0){
 	if(Manager->GetMonitors().size() == 1)
-		start("polybar");  
+		start("polybar");
 	else
 	{
-		start("polybar tgwm1");  
-		start("polybar tgwm2");  
-	
+		start("polybar tgwm1");
+		start("polybar tgwm2");
+
 	}
     }
 };
@@ -116,7 +116,7 @@ inline std::function<void(Manager *)> BootstrapFunction = [](Manager *Manager)
 
 namespace CONFIG
 {
-    
+
     /*=====================================================================================================*/
     /*============================================ Default Layouts ========================================*/
     /*=====================================================================================================*/
@@ -169,7 +169,7 @@ namespace CONFIG
         //new Tag(0, "home", ICON_FA_COMPUTER),
          new Tag(0, "term", ""),
          new Tag(1, "dev", ""),
-         new Tag(2, "www", ""),         
+         new Tag(2, "www", ""),
          new Tag(3, "misc", "")},
 
         {new Tag(0, "www", ""),
@@ -183,7 +183,7 @@ namespace CONFIG
 
         // System Widget
         new Widget(
-            "system", Colors[11], ICON_FA_POWER_OFF, 
+            "system", Colors[11], ICON_FA_POWER_OFF,
             [](Widget *w, Monitor *mon)
             {
                 return "";
@@ -195,14 +195,14 @@ namespace CONFIG
 
         // Time Widget
         new Widget(
-            "time", Colors[0], ICON_FA_CLOCK, 
+            "time", Colors[0], ICON_FA_CLOCK,
             [](Widget *w, Monitor *mon)
             {
                 auto time = GetTime();
 
                 if(time != w->GetValue())
                 {
-                    w->SetValue(time);                    
+                    w->SetValue(time);
                 }
 
                 return time;
@@ -211,14 +211,14 @@ namespace CONFIG
 
         // Date Widget
         new Widget(
-            "date", Colors[1], ICON_FA_CALENDAR, 
+            "date", Colors[1], ICON_FA_CALENDAR,
             [](Widget *w, Monitor *mon)
-            { 
-                auto date = GetDate(); 
+            {
+                auto date = GetDate();
 
                 if(date != w->GetValue())
                 {
-                    w->SetValue(date);                    
+                    w->SetValue(date);
                 }
 
                 return date;
@@ -236,7 +236,7 @@ namespace CONFIG
 
                 int volumnInt = std::stoi(volumn);
 
-                if (volumnInt < 30)                    
+                if (volumnInt < 30)
                     w->SetIcon(ICON_FA_VOLUME_OFF);
                 else if (volumnInt >= 30 && volumnInt < 60)
                     w->SetIcon(ICON_FA_VOLUME_LOW);
@@ -262,7 +262,7 @@ namespace CONFIG
 
         // Cpu Widget
         new Widget(
-            "cpu", Colors[4], ICON_FA_MICROCHIP, 
+            "cpu", Colors[4], ICON_FA_MICROCHIP,
             [](Widget *w, Monitor *mon)
             {
                 auto cpu = exec("cat /proc/stat |grep cpu |tail -1|awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}'|awk '{print  100-$1}'").substr(0, 1) + "%";
@@ -276,7 +276,7 @@ namespace CONFIG
 
         // Memory Widget
         new Widget(
-            "memory", Colors[5], ICON_FA_MEMORY, 
+            "memory", Colors[5], ICON_FA_MEMORY,
             [](Widget *w, Monitor *mon)
             {
                 std::string memory = exec("free -h | grep Mem:");
@@ -311,7 +311,7 @@ namespace CONFIG
                     start("setxkbmap ir");
                 else
                     start("setxkbmap de");
-                
+
                 widget->SetChangeStatus(true);
                 manager->UpdateWidgets();
             }),
@@ -342,7 +342,7 @@ namespace CONFIG
 
                 w->SetValue(layoutStr);
                 return layoutStr;
-                
+
             },
             [](int button, Manager *manager , Widget * widget)
             {
@@ -359,7 +359,7 @@ namespace CONFIG
                 widget->SetChangeStatus(true);
                 manager->UpdateWidgets();
                 manager->SortAll();
-            }),        
+            }),
     };
 
     inline std::vector<Widget *> Mon2Widgets = {
@@ -381,19 +381,19 @@ namespace CONFIG
         new Widget(
             "date", Colors[1], ICON_FA_CALENDAR,
             [](Widget *w, Monitor *mon)
-            { 
+            {
                 auto date = GetDate();
 
                 w->SetValue(date);
 
-                return date; 
+                return date;
             },
             [](int button, Manager *manager , Widget * widget) {}),
 
 
         // Layout Mon 2
         new Widget(
-            "Layout", Colors[7], ICON_FA_KEYBOARD, 
+            "Layout", Colors[7], ICON_FA_KEYBOARD,
             [](Widget *w, Monitor *mon)
             {
                 auto layout = mon->GetLayout();
@@ -429,7 +429,7 @@ namespace CONFIG
                     manager->GetMonitor(1)->SetLayout(Layouts::Layouts_Focus);
                 else
                     manager->GetMonitor(1)->SetLayout(Layouts::Layouts_Horizontal);
-                
+
                 widget->SetChangeStatus(true);
                 manager->UpdateWidgets();
                 manager->SortAll();
@@ -444,7 +444,7 @@ namespace CONFIG
     /*=============================================== Bindings ============================================*/
     /*=====================================================================================================*/
     inline std::vector<std::tuple<int, int, std::function<void(Manager *, const XKeyEvent)>>> Keys = {
-        
+
         // Mod + F1
         {XK_F1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
@@ -646,8 +646,8 @@ namespace CONFIG
                 manager->GetSelectedMonitor()->SetLayout(Layouts_Vertical);
             else if(layout == Layouts_Vertical)
                  manager->GetSelectedMonitor()->SetLayout(Layouts_Focus);
-            else 
-                manager->GetSelectedMonitor()->SetLayout(Layouts_Horizontal);                    
+            else
+                manager->GetSelectedMonitor()->SetLayout(Layouts_Horizontal);
             manager->GetSelectedMonitor()->Sort();
 
             manager->GetSelectedMonitor()->UpdateWidget("Layout");
@@ -658,7 +658,7 @@ namespace CONFIG
         {XK_KP_1, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
             auto clients = manager->GetSelectedMonitor()->GetClients(manager->GetSelectedMonitor()->GetSelectedTag()->GetIndex() , FloatingStatus::FSNormal);
-            
+
             if(clients.size() < 2)
                 return;
 
@@ -669,7 +669,7 @@ namespace CONFIG
                   });
 
             clients.at(0)->SetPriority(0);
-            clients.at(1)->SetPriority(1);            
+            clients.at(1)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             for(auto client : clients)
@@ -690,7 +690,7 @@ namespace CONFIG
 
             if(clients.size() < 3)
                 return;
-            
+
             std::sort(clients.begin(), clients.end(),
                   [](Client *const &a, Client *const &b)
                   {
@@ -698,11 +698,11 @@ namespace CONFIG
                   });
 
             clients.at(0)->SetPriority(0);
-            clients.at(2)->SetPriority(1);            
+            clients.at(2)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             clients.at(0)->SetPriority(0);
-            clients.at(1)->SetPriority(1);            
+            clients.at(1)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             for(auto client : clients)
@@ -724,7 +724,7 @@ namespace CONFIG
 
             if(clients.size() < 4)
                 return;
-            
+
             std::sort(clients.begin(), clients.end(),
                   [](Client *const &a, Client *const &b)
                   {
@@ -732,11 +732,11 @@ namespace CONFIG
                   });
 
             clients.at(0)->SetPriority(0);
-            clients.at(3)->SetPriority(1);            
+            clients.at(3)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             clients.at(0)->SetPriority(0);
-            clients.at(1)->SetPriority(1);            
+            clients.at(1)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             for(auto client : clients)
@@ -758,7 +758,7 @@ namespace CONFIG
 
             if(clients.size() < 5)
                 return;
-            
+
             std::sort(clients.begin(), clients.end(),
                   [](Client *const &a, Client *const &b)
                   {
@@ -766,11 +766,11 @@ namespace CONFIG
                   });
 
             clients.at(0)->SetPriority(0);
-            clients.at(4)->SetPriority(1);            
+            clients.at(4)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             clients.at(0)->SetPriority(0);
-            clients.at(1)->SetPriority(1);            
+            clients.at(1)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             for(auto client : clients)
@@ -792,7 +792,7 @@ namespace CONFIG
 
             if(clients.size() < 6)
                 return;
-            
+
             std::sort(clients.begin(), clients.end(),
                   [](Client *const &a, Client *const &b)
                   {
@@ -800,11 +800,11 @@ namespace CONFIG
                   });
 
             clients.at(0)->SetPriority(0);
-            clients.at(5)->SetPriority(1);            
+            clients.at(5)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             clients.at(0)->SetPriority(0);
-            clients.at(1)->SetPriority(1);            
+            clients.at(1)->SetPriority(1);
             manager->GetSelectedMonitor()->Sort();
 
             for(auto client : clients)
@@ -828,7 +828,7 @@ namespace CONFIG
 
              if(clients.size() < 2)
                 return;
-          
+
             for(auto client : clients)
             {
                 if(client->GetPriority() != 0)
@@ -837,8 +837,8 @@ namespace CONFIG
                     break;
                 }
             }
-            
-            
+
+
 
          }},
 
@@ -849,7 +849,7 @@ namespace CONFIG
 
              if(clients.size() < 2)
                 return;
-          
+
             for(auto client : clients)
             {
                 if(client->GetPriority() == 0)
@@ -858,8 +858,8 @@ namespace CONFIG
                     break;
                 }
             }
-            
-            
+
+
 
          }},
 
