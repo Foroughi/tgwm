@@ -30,7 +30,8 @@ std::string ToString(const XEvent &e);
 static unsigned int numlockmask = 0;
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
-
+template <typename Func, typename... Args>
+void runInThread(Func&& func, Args&&... args);
 enum
 {
 	NetSupported,
@@ -46,7 +47,7 @@ enum
     NetWorkspacesNames,
     NetCurrentWorkspace,
     NetWMDesktop,
-	NetLast,    
+	NetLast,
 };
 
 enum
@@ -56,7 +57,7 @@ enum
 	WMState,
 	WMTakeFocus,
 	WMLast
-}; 
+};
 
 enum FloatingStatus
 {

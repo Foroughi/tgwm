@@ -12,7 +12,13 @@
 #include <stdexcept>
 #include <array>
 #include<unistd.h>
+#include <thread>
+#include <functional>
 
+template <typename Func, typename... Args>
+void runInThread(Func&& func, Args&&... args) {
+    std::thread(std::forward<Func>(func), std::forward<Args>(args)...).detach();
+}
 
 void start(std::string what)
 {
@@ -22,7 +28,7 @@ void start(std::string what)
         //char *const args[] = {"-c", what};
         execl("/bin/sh", "/bin/sh" , "-c" , what.c_str() , NULL);
         exit(1);
-    }    
+    }
 }
 
 std::string exec(const char *cmd)
@@ -76,8 +82,8 @@ void *ecalloc(size_t nmemb, size_t size)
 void Log(std::string log)
 {
 
-    
-    
+
+
 }
 
 void DrawText(Display *display, Drawable drawable, int screen, std::string Color, int x, int y, char *text)
@@ -94,13 +100,13 @@ void DrawText(Display *display, Drawable drawable, int screen, std::string Color
 
 std::string GetTime()
 {
-//               Local time: Tue 2023-04-11 19:36:55 CEST    
+//               Local time: Tue 2023-04-11 19:36:55 CEST
     return exec("timedatectl").substr(42, 5);
 }
 
 std::string GetDate()
 {
-//               Local time: Tue 2023-04-11 19:36:55 CEST    
+//               Local time: Tue 2023-04-11 19:36:55 CEST
     return exec("timedatectl").substr(27, 14);
 }
 

@@ -21,8 +21,10 @@
 /*=====================================================================================================*/
 /*=============================================== Configs =============================================*/
 /*=====================================================================================================*/
-#define TOP_BAR_HEIGHT 33
+
 #define GAP 7
+#define TOPBAR -1 // -1 disabled 0 Polybar 1 Built-in bar
+#define TOP_BAR_HEIGHT ((TOPBAR == -1) ? GAP : 33)  //default 33 , min-value = GAP (7)
 #define TAGGAP 5
 #define BORDER_WIDTH 2
 #ifdef TGWMDEBUG
@@ -42,15 +44,14 @@
 #define CLIENT_NORMAL_BCOLOR 0x3B3B3B
 #define CLIENT_SELECTED_BCOLOR 0x1E88E5
 #define ANIMATION 0
-#define TERMINAL "kitty"
+#define TERMINAL "wezterm"
 #define RUN_DBUS true
 #define RUN_GNOMEKEYRING true
 #define RUN_NITORGEN true
 #define RUN_COMPOSITOR true
 #define COMPOSITOR "picom -b"
-#define RUN_CONKEY true
+#define RUN_CONKEY false
 
-#define TOPBAR 0 //0- Polybar 1 - Built-in bar
 
 /*=====================================================================================================*/
 /*=============================================== Bootstrap =============================================*/
@@ -622,7 +623,8 @@ namespace CONFIG
         // Mod + Enter
         {XK_Return, HOTKEY, [](Manager *manager, const XKeyEvent &e)
          {
-             start(std::string(TERMINAL).append(" bash -c 'tmux attach-session ||  tmux'"));
+             //start(std::string(TERMINAL).append(" start -- bash -c 'tmux a || tmux'"));
+             start("rofi -show tmux-menu -modi tmux-menu:\"~/.config/rofi/rofi-tmux-menu\" -config ~/.config/rofi/config.rasi");
          }},
 
         // Mod + Ctrl  + Enter

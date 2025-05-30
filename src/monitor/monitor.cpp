@@ -89,7 +89,7 @@ std::vector<Client *> Monitor::GetClients(int tagIndex = -1, FloatingStatus Floa
 
     std::vector<Client *> temp = {};
     std::copy_if(this->Clients.begin(), this->Clients.end(), std::back_inserter(temp), [=](Client *c)
-                 { 
+                 {
                     bool flag = true;
 
                     if(FloatingStatus != FSAll)
@@ -125,7 +125,7 @@ void Monitor::Sort()
     std::vector<Client *> clients = this->GetClients(this->SelectedTag->GetIndex(), FSNormal);
 
     int cNum = clients.size();
-    
+
     if (cNum == 0)
         return;
 
@@ -177,6 +177,7 @@ void Monitor::Sort()
         {
             if (i == 0)
             {
+
                 c->SetSize(((w * 70) / 100) - (GAP * 2), y - (GAP * 2));
                 c->SetLocation(GAP + this->GetLoc().x, TOP_BAR_HEIGHT + GAP + this->GetLoc().y);
             }
