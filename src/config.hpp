@@ -23,7 +23,7 @@
 /*=====================================================================================================*/
 
 #define GAP 7
-#define TOPBAR -1 // -1 disabled 0 Polybar 1 Built-in bar
+#define TOPBAR 0 // -1 disabled 0 Polybar 1 Built-in bar
 #define TOP_BAR_HEIGHT ((TOPBAR == -1) ? GAP : 33)  //default 33 , min-value = GAP (7)
 #define TAGGAP 5
 #define BORDER_WIDTH 2
@@ -51,7 +51,7 @@
 #define RUN_COMPOSITOR true
 #define COMPOSITOR "picom -b"
 #define RUN_CONKEY false
-
+#define SELECT_LAST_WIN_ON_TAG_CHANGE true
 
 /*=====================================================================================================*/
 /*=============================================== Bootstrap =============================================*/

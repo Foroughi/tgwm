@@ -4,7 +4,7 @@
 #include <X11/Xlib.h>
 #include <vector>
 #include "../monitor/monitor.hpp"
-
+#include "../util/util.hpp"
 
 class Manager
 {
@@ -17,7 +17,7 @@ private:
     Monitor* SelectedMonitor;
     Client *SelectedClient;
     bool IsRunning;
-    void Config();     
+    void Config();
     bool DebugMode = False;
     bool IsUpdatingWidgets = False;
     Atom NET_Atom[NetLast];
@@ -27,7 +27,7 @@ public:
     Manager(Display *display);
     ~Manager();
 
-    void EnableDubugMod();    
+    void EnableDubugMod();
     void Update_NET_CLIENT_LIST();
     void DrawBars();
     void DrawBar(Monitor *mon);
@@ -49,12 +49,12 @@ public:
     Monitor* GetSelectedMonitor();
     Monitor* GetMonitor(int index);
     void Stop();
-    int Run();        
+    int Run();
     std::vector<Monitor *> GetMonitors();
     Atom GetNETAtomByClient(Window, Atom);
     static int OnXError(Display *display, XErrorEvent *e);
     void onFocusIn(XFocusChangeEvent &e);
-    void OnMotionNotify(XMotionEvent &e);    
+    void OnMotionNotify(XMotionEvent &e);
     Client * GetSelectedClient();
     void MoveSelectedClient(Monitor* mon ,int index);
     void SelectClient(Client *client);
@@ -62,7 +62,7 @@ public:
     void UpdateWidgets();
     void SortAll();
     void Reload();
-    void onSelectedTagChanged(int Index);    
+    void onSelectedTagChanged(int Index);
     Display* GetDisplay();
     void OnClientMessage(XClientMessageEvent &e);
     int SendEvent(Client *c, Atom proto);
@@ -73,7 +73,7 @@ public:
     Client* FindClientByWin(Window win);
     void ToggleClientFullscreen(Display *dpy, Monitor* mon , Client *client, int fullscreen);
 
-    
+
 };
 
 #endif

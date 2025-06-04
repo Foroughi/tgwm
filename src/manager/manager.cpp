@@ -52,28 +52,35 @@ void Manager::Config()
             mon->SetSize(info[i].width, info[i].height);
             mon->SetLoc(info[i].x_org, info[i].y_org);
 
-            mon->OnSelectedTagChanged = [=](int Index)
+            mon->OnSelectedTagChanged = [mon , this, i](int Index)
             {
 
                 int currentWorkspace[1] = {Index};
-                XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);                
+                XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);
 
                 this->SortAll();
 
                 this->DrawBars();
 
-                auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();
+                /*auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();*/
 
+                auto currenTag = mon->GetSelectedTag();
                 Window win = currenTag->GetLastActiveWindow();
 
                 if (win != 0)
-                    this->SelectClient(this->SelectedMonitor->FindByFrame(win));
+                {
+
+                    this->SelectClient(mon->FindByWinOrFrame(win));
+                }
                 else
                 {
-                    if(this->SelectedMonitor->GetClients(Index , FSAll).size() > 0)
-                        this->SelectClient(this->SelectedMonitor->GetClients(Index , FSAll).at(0));
+                    if(mon->GetClients(Index , FSAll).size() > 0)
+                        this->SelectClient(mon->GetClients(Index , FSAll).at(0));
                     else
+                    {
                         this->SelectClient(NULL);
+
+                    }
                 }
             };
 
@@ -106,28 +113,32 @@ void Manager::Config()
                                CONFIG::Tags[0]);
 
         mon->SetSize(DisplayWidth(this->CurrentDisplay, mon->GetScreen()), DisplayHeight(this->CurrentDisplay, mon->GetScreen()));
-
-        mon->OnSelectedTagChanged = [=](int Index)
+        mon->OnSelectedTagChanged = [mon , this](int Index)
         {
             int currentWorkspace[1] = {Index};
-            XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
+            XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetCurrentWorkspace], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);
 
             this->DrawBars();
 
-            auto currenTag = this->GetSelectedMonitor()->GetSelectedTag();
+            auto currenTag = mon->GetSelectedTag();
 
             Window win = currenTag->GetLastActiveWindow();
 
             if (win != 0)
+            {
                 this->SelectClient(this->SelectedMonitor->FindByFrame(win));
+            }
             else
             {
                 if(this->SelectedMonitor->GetClients(Index , FSAll).size() > 0)
                     this->SelectClient(this->SelectedMonitor->GetClients(Index , FSAll).at(0));
                 else
+                {
                     this->SelectClient(NULL);
+                }
             }
         };
+
 
         mon->SetWidgets(CONFIG::Widgets.at(0));
 
@@ -394,13 +405,13 @@ void Manager::OnClientMessage(XClientMessageEvent &e)
         if (!c)
             continue;
 
-        //A Client as for attention either by opening a modal or user using ctrl+tab to active a window 
+        //A Client as for attention either by opening a modal or user using ctrl+tab to active a window
         else if (e.message_type == NET_Atom[NetActiveWindow])
         {
 
-            if (mon->GetSelectedTag()->GetIndex() != c->GetTagIndex())            
+            if (mon->GetSelectedTag()->GetIndex() != c->GetTagIndex())
                 mon->SelectTagByIndex(c->GetTagIndex());
-            
+
         }
         else if (e.message_type == NET_Atom[NetWMState])
         {
@@ -494,7 +505,7 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
 
     char *win_name;
     XFetchName(this->GetDisplay(), w, &win_name);
-    
+
     // ignoring conky , polybar windows
     if (win_name != NULL && (std::string(win_name).find("conky") != std::string::npos || std::string(win_name).find("polybar") != std::string::npos))
     {
@@ -516,7 +527,7 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
         if (x_window_attrs.override_redirect ||
             x_window_attrs.map_state != IsViewable)
         {
-          
+
             return;
         }
     }
@@ -537,16 +548,16 @@ void Manager::Frame(Window w, bool WasCreatedBefore)
     auto TagIndex= this->SelectedMonitor->GetSelectedTag()->GetIndex();
 
     int currentWorkspace[1] = {TagIndex};
-    XChangeProperty(this->CurrentDisplay, w, this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
+    XChangeProperty(this->CurrentDisplay, w, this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);
 
     XAddToSaveSet(this->CurrentDisplay, w);
     XReparentWindow(this->CurrentDisplay, w, frame, 0, 0);
     XMapWindow(this->CurrentDisplay, frame);
 
-    
+
     this->SelectedMonitor->AddClient(this->CurrentDisplay, isFloating ? this->GetSelectedClient() : NULL, frame, w, isFloating,  TagIndex);
 
-    
+
 
     this->Update_NET_CLIENT_LIST();
 
@@ -577,12 +588,12 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     // Atom wtype = this->GetNETAtomByClient(e.window, this->GetNETAtom(NetWMWindowType));
 
     // if (client)
-    // {    
+    // {
     //     return;
     // }
     // else if (wtype == this->GetNETAtom(NetWMWindowTypeDialog))
     // {
-    
+
     //     int x = this->GetSelectedClient()->GetLocation().x;
     //     int y = this->GetSelectedClient()->GetLocation().y;
 
@@ -601,7 +612,7 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
     // }
     // else
     {
-      
+
         XWindowChanges changes;
         changes.x = e.x;
         changes.y = e.y;
@@ -617,7 +628,7 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
         {
 
             // const Window frame = c->GetFrame();
-            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);            
+            // XConfigureWindow(this->CurrentDisplay, frame, e.value_mask, &changes);
 
             changes.x = 0;
             changes.y = 0;
@@ -633,11 +644,11 @@ void Manager::OnConfigureRequest(const XConfigureRequestEvent &e)
 
             XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
 
-          
+
         }
 
         XConfigureWindow(this->CurrentDisplay, e.window, e.value_mask, &changes);
-        
+
     }
 }
 
@@ -654,7 +665,7 @@ void Manager::OnMapRequest(const XMapRequestEvent &e)
 
 void Manager::OnCreateNotify(const XCreateWindowEvent &e)
 {
-    
+
 }
 
 void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
@@ -670,7 +681,7 @@ void Manager::OnDestroyNotify(const XDestroyWindowEvent &e)
     const Window win = c->GetWindow();
 
     this->SelectedMonitor->RemoveClient(c);
-    delete c;    
+    delete c;
 
     this->SelectedMonitor->Sort();
 
@@ -710,7 +721,7 @@ void Manager::reparentAlreadyOpenWindows()
         &returned_parent,
         &top_level_windows,
         &num_top_level_windows);
-    
+
     for (unsigned int i = 0; i < num_top_level_windows; ++i)
     {
         Frame(top_level_windows[i], true);
@@ -730,10 +741,10 @@ void Manager::OnMouseLeave(const XCrossingEvent &e)
 
 void Manager::OnButtonPress(XButtonPressedEvent &e)
 {
-    
+
     XAllowEvents(this->CurrentDisplay, ReplayPointer, CurrentTime);
     XSync(this->CurrentDisplay, 0);
-    
+
     if (e.subwindow == this->root)
     {
         this->SelectClient(NULL);
@@ -838,8 +849,8 @@ int Manager::OnXError(Display *display, XErrorEvent *e)
 
     const int MAX_ERROR_TEXT_LENGTH = 1024;
     char error_text[MAX_ERROR_TEXT_LENGTH];
-    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));    
-    
+    XGetErrorText(display, e->error_code, error_text, sizeof(error_text));
+
     return 0;
 }
 
@@ -933,7 +944,19 @@ void Manager::SelectClient(Client *client)
 
         XSetInputFocus(this->CurrentDisplay, client->GetWindow(), RevertToPointerRoot, CurrentTime);
 
-        auto currentTag = this->GetSelectedMonitor()->GetSelectedTag();
+        Monitor* mon;
+        for (auto it : this->Monitors)
+        {
+            auto w = it->FindByWinOrFrame(client->GetWindow());
+
+            if(w != 0)
+            {
+                mon = it;
+                break;
+            }
+        }
+
+        auto currentTag = mon->GetSelectedTag();
         currentTag->SetLastActiveWindow(client->GetFrame());
         auto win = client->GetWindow();
         XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, (unsigned char *)&win, 1);
@@ -941,7 +964,6 @@ void Manager::SelectClient(Client *client)
     else
     {
         this->SelectedClient = NULL;
-        
         XSetInputFocus(this->CurrentDisplay, this->root, RevertToPointerRoot, CurrentTime);
         //XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetActiveWindow], XA_WINDOW, 32, PropModeReplace, NULL , 1);
         XDeleteProperty(this->CurrentDisplay, this->root, NET_Atom[NetActiveWindow]);
@@ -960,14 +982,21 @@ void Manager::MoveSelectedClient(Monitor *mon, int index)
     for (auto it : this->Monitors)
     {
         it->RemoveClient(this->SelectedClient);
-        if (it == mon)
-            it->AddClient(this->SelectedClient);
     }
 
+    for (auto it : this->Monitors)
+    {
+        if (it == mon)
+        {
+            it->AddClient(this->SelectedClient);
+            this->SelectedClient->Show();
+            break;
+        }
+    }
     this->SelectedClient->SetTagIndex(index);
 
     int currentWorkspace[1] = {index};
-    XChangeProperty(this->CurrentDisplay, this->SelectedClient->GetWindow() , this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);            
+    XChangeProperty(this->CurrentDisplay, this->SelectedClient->GetWindow() , this->NET_Atom[NetWMDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)currentWorkspace, 1);
 
     auto clients = this->SelectedMonitor->GetClients(this->SelectedMonitor->GetSelectedTag()->GetIndex(), FloatingStatus::FSAll);
     if (clients.size() > 0)
@@ -1092,7 +1121,7 @@ int Manager::Run()
     this->WM_Atom[WMState] = XInternAtom(this->CurrentDisplay, "WM_STATE", False);
     this->WM_Atom[WMTakeFocus] = XInternAtom(this->CurrentDisplay, "WM_TAKE_FOCUS", False);
     this->WM_Atom[NetWMDesktop] = XInternAtom(this->CurrentDisplay, "_NET_WM_DESKTOP", False);
-    
+
 
     // Polybar Integration
     this->NET_Atom[NetNumberOfWorkspaces] = XInternAtom(this->CurrentDisplay, "_NET_NUMBER_OF_DESKTOPS", False);
@@ -1110,24 +1139,24 @@ int Manager::Run()
     XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetNumberOfWorkspaces], XA_CARDINAL, 32, PropModeReplace, (unsigned char *)numberOfDesktops, 1);
 
     int lengthOfNames = 0;
-  
+
 
     for (auto t : CONFIG::Tags[0])
     {
         lengthOfNames += t->GetName().length() + 1;
-       
+
     }
 
     char names[lengthOfNames];
     int currentNameChar = 0;
     for (auto t : CONFIG::Tags[0])
-    {      
+    {
         for (auto i = 0; i < t->GetName().length() + 1 ; i++)
         {
             names[currentNameChar++] = t->GetName()[i];
         }
-        
-       
+
+
     }
 
     XChangeProperty(this->CurrentDisplay, this->root, this->NET_Atom[NetWorkspacesNames], XInternAtom(this->CurrentDisplay, "UTF8_STRING", False), 8, PropModeAppend, (unsigned char *)names, lengthOfNames);
@@ -1152,7 +1181,7 @@ int Manager::Run()
 
     this->Config();
     this->DrawBars();
-    this->UpdateWidgets();    
+    this->UpdateWidgets();
 
     std::chrono::time_point start = std::chrono::steady_clock::now();
 
@@ -1170,7 +1199,7 @@ int Manager::Run()
         // if (XPending(this->CurrentDisplay) == 0)
         //     continue;
 
-        // if (e.type != MotionNotify)        
+        // if (e.type != MotionNotify)
 
         switch (e.type)
         {

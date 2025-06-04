@@ -63,12 +63,13 @@ void Monitor::SelectTagByIndex(int index)
     if(this->Tags.size() <= index)
         return;
 
-    this->HideClients(this->SelectedTag->GetIndex());
+    if(this->SelectedTag != this->Tags[index])
+    {
+        this->HideClients(this->SelectedTag->GetIndex());
+        this->SelectedTag = this->Tags[index];
+        this->ShowClients(this->SelectedTag->GetIndex());
 
-    this->SelectedTag = this->Tags[index];
-
-    this->ShowClients(this->SelectedTag->GetIndex());
-
+    }
     if (this->OnSelectedTagChanged != NULL)
         this->OnSelectedTagChanged(index);
 }

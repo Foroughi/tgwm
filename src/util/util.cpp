@@ -82,6 +82,8 @@ void *ecalloc(size_t nmemb, size_t size)
 void Log(std::string log)
 {
 
+std::ofstream flog("/tmp/tgwm.log", std::ios::app);
+flog << log << std::endl;
 
 
 }

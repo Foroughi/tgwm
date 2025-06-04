@@ -27,7 +27,7 @@ void Client::Show()
 
     this->IsHidden = False;
 
-    auto h = this->GetSize().y;
+    //auto h = this->GetSize().y;
     XMapWindow(this->_Display, this->Frame);
     XFlush(this->_Display);
     //XMoveWindow(this->_Display, this->Frame, 0, h);

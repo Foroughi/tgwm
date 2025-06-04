@@ -1,8 +1,6 @@
-set -e 
+set -e
 
 make DEBUGMODEFLAG="-DTGWMDEBUG"
 
 XEPHYR=$(whereis -b Xephyr | cut -f2 -d' ')
-xinit ./xinitrc -- "$XEPHYR"  :100 -ac -screen 1400x1000 -host-cursor 
-
-DISPLAY=:100 google-chrome &
+xinit ./xinitrc -- "$XEPHYR"  :100 -ac -screen 1400x1000 -host-cursor
