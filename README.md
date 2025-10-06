@@ -60,5 +60,3 @@ These are the two projects that showed me the ropes.
 2. [Basic_wm](https://github.com/jichu4n/basic_wm)
 3. My friend Amin who helped me choose a suitable, yet most underrated name for the project.
 
-
-[![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=anuraghazra)](https://github.com/anuraghazra/github-readme-stats)
